@@ -180,6 +180,32 @@ async function initData() {
 
 let db = await initData()
 if (!db.issuances) db.issuances = []
+
+// ===== تطبيع تواريخ البيتي كاش =====
+// صيغ قديمة موجودة في البيانات: ISO بترتيب yyyy-dd-mm (اليوم في الوسط) و dd/m/yyyy المختصرة
+// النتيجة الموحدة: 'DD/MM/YYYY'
+function normPettyDate(v) {
+  if (v == null || v === '') return ''
+  const s = String(v).trim()
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/) // yyyy-dd-mm (من استيراد قديم معكوس)
+  if (m) return `${m[2].padStart(2, '0')}/${m[3].padStart(2, '0')}/${m[1]}`
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/) // dd/mm/yyyy (اختصار بخانة واحدة)
+  if (m) return `${m[1].padStart(2, '0')}/${m[2].padStart(2, '0')}/${m[3]}`
+  return s
+}
+// تحويل 'DD/MM/YYYY' إلى كائن Date حقيقي — يُستخدم عند تصدير الإكسل
+function parsePettyDate(v) {
+  const s = normPettyDate(v)
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/)
+  if (!m) return null
+  return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]))
+}
+let normalizedCount = 0
+for (const p of db.pettyCash ?? []) {
+  const n = normPettyDate(p.date)
+  if (n !== p.date) { p.date = n; normalizedCount++ }
+}
+if (normalizedCount) console.log(`Normalized ${normalizedCount} petty cash dates`)
 const sessions = new Map() // token -> userId
 
 // ===== إشعارات =====
@@ -585,7 +611,7 @@ app.get('/api/export/:kind', async (req, res) => {
       const rows = db.pettyCash.filter((p) => p.month === m)
       ws.mergeCells('A1:K1')
       const t = ws.getCell('A1')
-      t.value = new Date(MONTH_START[m] || rows[0]?.date || Date.now())
+      t.value = new Date(MONTH_START[m] || parsePettyDate(rows[0]?.date) || Date.now())
       t.numFmt = 'mmmm yyyy'
       baseStyle(t, { bold: true, size: 16 })
       ws.getRow(1).height = 30
@@ -594,7 +620,9 @@ app.get('/api/export/:kind', async (req, res) => {
       ws.getRow(2).height = 28
       let n = 1
       for (const p of rows) {
-        const r = ws.addRow([n++, p.date, p.department, p.description, p.invoiceNo, p.qty, p.unitPrice, null, null, null, p.remarks ?? ''])
+        const dt = parsePettyDate(p.date)
+        const r = ws.addRow([n++, dt ?? p.date, p.department, p.description, p.invoiceNo, p.qty, p.unitPrice, null, null, null, p.remarks ?? ''])
+        if (dt) r.getCell(2).numFmt = 'DD/MM/YYYY'
         const rn = r.number
         r.getCell(8).value = { formula: `F${rn}*G${rn}` }
         r.getCell(9).value = { formula: `H${rn}*0.15` }

@@ -1,7 +1,15 @@
+/** تحليل التاريخ: يفهم DD/MM/YYYY و yyyy-mm-dd (ISO) — لا يعتمد على تفسير المتصفح */
+function parseAnyDate(s: string): Date | null {
+  const dm = s.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+  if (dm) return new Date(Number(dm[3]), Number(dm[2]) - 1, Number(dm[1]))
+  const d = new Date(s)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
 export function fmtDate(iso?: string): string {
   if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
+  const d = parseAnyDate(iso)
+  if (!d) return iso
   return d.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' })
 }
 
