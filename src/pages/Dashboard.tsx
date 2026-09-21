@@ -89,10 +89,10 @@ export default function Dashboard() {
           <CardContent>
             <ul className="divide-y">
               {myIssuances.map((iss) => (
-                <li key={iss.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-3">
+                <li key={iss.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                     <Badge variant="outline">−{iss.qty} {iss.uom}</Badge>
-                    <span>{iss.itemDescription}</span>
+                    <span className="min-w-0 break-words">{iss.itemDescription}</span>
                     <span className="text-muted-foreground">{iss.department} — {t('by.label')}: {iss.createdBy}</span>
                   </div>
                   <Link to="/outbound" className="text-sm font-medium text-primary hover:underline">
@@ -116,10 +116,10 @@ export default function Dashboard() {
           <CardContent>
             <ul className="divide-y">
               {pendingForMe.map((m) => (
-                <li key={m.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-3">
+                <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                     <Badge variant="outline">{m.mrfNo}</Badge>
-                    <span>{m.department} — {m.facility}</span>
+                    <span className="min-w-0 break-words">{m.department} — {m.facility}</span>
                     <Badge className={m.priority === 'top' ? 'bg-red-600' : m.priority === 'urgent' ? 'bg-orange-500' : 'bg-slate-500'}>
                       {PRIORITIES[m.priority]}
                     </Badge>
@@ -149,8 +149,8 @@ export default function Dashboard() {
               ) : (
                 <ul className="divide-y text-sm">
                   {lowStock.map((i) => (
-                    <li key={i.id} className="flex items-center justify-between py-2">
-                      <span>{i.description} <span className="text-muted-foreground">({i.partNo})</span></span>
+                    <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                      <span className="min-w-0 break-words">{i.description} <span className="text-muted-foreground">({i.partNo})</span></span>
                       <Badge variant="destructive">
                         {t('dash.available')} {stock(i.id)} / {t('dash.minStock')} {i.minStock}
                       </Badge>
@@ -174,8 +174,8 @@ export default function Dashboard() {
               {pendingAll.slice(0, 6).map((m) => {
                 const nxt = nextApproval(m)
                 return (
-                  <li key={m.id} className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-2">
+                  <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                       <Badge variant="outline">{m.mrfNo}</Badge>
                       <span className="text-muted-foreground">{fmtDateTime(m.createdAt)}</span>
                     </div>

@@ -69,6 +69,11 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    /* منع أي صفحة من التجاوز أفقياً خارج شاشة الجوال — clip لا يكسر sticky */
+    overflow-x: clip;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
