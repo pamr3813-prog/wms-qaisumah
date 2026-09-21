@@ -723,8 +723,21 @@ wss.on('connection', (ws, req) => {
 // ===== تقديم واجهة المستخدم المبنية (production) =====
 const DIST_DIR = join(__dirname, '..', 'dist')
 if (existsSync(DIST_DIR)) {
-  app.use(express.static(DIST_DIR))
-  app.get(/^\/(?!api\/|ws).*/, (_req, res) => res.sendFile(join(DIST_DIR, 'index.html')))
+  /* الملفات المبنية بأسماء مشفرة (assets) تُخزن سنة كاملة؛
+     index.html لا يُخزن أبداً حتى يحصل الجوال على آخر نسخة فور كل تحديث */
+  app.use(express.static(DIST_DIR, {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      }
+    },
+  }))
+  app.get(/^\/(?!api\/|ws).*/, (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.sendFile(join(DIST_DIR, 'index.html'))
+  })
 }
 
 server.listen(PORT, '0.0.0.0', () => {
