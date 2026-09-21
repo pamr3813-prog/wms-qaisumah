@@ -47,9 +47,22 @@ export const ROLES_EN: Record<RoleKey, string> = {
   admin: 'System Admin',
 }
 
-/** المسمى الوظيفي حسب لغة الواجهة — في الإنجليزية يظهر بالإنجليزية وبالأحرف الكبيرة (SITE MANAGER) */
-export function roleLabel(role: RoleKey, lang: 'ar' | 'en'): string {
-  return lang === 'ar' ? (ROLES[role] ?? role) : (ROLES_EN[role] ?? role).toUpperCase()
+/** المسمى الوظيفي حسب لغة الواجهة — في الإنجليزية يظهر بالإنجليزية وبالأحرف الكبيرة (SITE MANAGER).
+ *  يقبل أيضاً أدواراً مخصصة حرة (مثل "مدير ادارة") فتُعاد كما كُتبت. */
+export function roleLabel(role: string, lang: 'ar' | 'en'): string {
+  const ar = (ROLES as Record<string, string>)[role]
+  const en = (ROLES_EN as Record<string, string>)[role]
+  return lang === 'ar' ? (ar ?? role) : en ? en.toUpperCase() : role
+}
+
+/** يطابق نصاً مكتوباً بمسمى دور رسمي (عربي أو إنجليزي) ويعيد مفتاحه؛ وإلا يعيد النص كدور مخصص حر */
+export function normalizeRole(input: string): string {
+  const v = input.trim()
+  if (!v) return v
+  const hit = (Object.keys(ROLES) as RoleKey[]).find(
+    (k) => ROLES[k] === v || ROLES_EN[k].toLowerCase() === v.toLowerCase(),
+  )
+  return hit ?? v
 }
 
 export const PRIORITIES: Record<Priority, string> = {
@@ -71,7 +84,7 @@ export const PERM_LABELS = {
 export type PermKey = keyof typeof PERM_LABELS
 
 /** مصفوفة الصلاحيات — تُفرض على الخادم أيضاً */
-export const PERMS: Record<string, RoleKey[]> = {
+export const PERMS: Record<string, string[]> = {
   canEditVouchers: ['logisticsSupervisor', 'admin'],
   canEditItems: ['storekeeper', 'logisticsSupervisor', 'admin'],
   canEditPetty: ['logisticsSupervisor', 'admin'], // شيتات الإكسل: اللوجستيك فقط
@@ -116,7 +129,8 @@ export interface User {
   id: string
   name: string
   email: string
-  role: RoleKey
+  /** الدور: إما مفتاح دور رسمي (مثل admin) أو مسمى مخصص حر يكتبه المدير (مثل "مدير ادارة") */
+  role: string
   active: boolean
   /** تجاوزات صلاحيات مخصصة لكل مستخدم — تتجاوز صلاحيات الدور */
   permOverrides?: Record<string, boolean>
@@ -127,7 +141,7 @@ export interface Comment {
   id: string
   mrfId: string
   author: string
-  role: RoleKey
+  role: string
   text: string
   at: string
 }

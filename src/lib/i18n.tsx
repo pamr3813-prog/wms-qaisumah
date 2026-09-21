@@ -270,6 +270,8 @@ const dict = {
   'ad.name': { ar: 'الاسم', en: 'Name' },
   'ad.email': { ar: 'البريد الإلكتروني الرسمي', en: 'Official email' },
   'ad.role': { ar: 'الصلاحية / الدور', en: 'Role' },
+  'ad.roleHint': { ar: 'اختر من القائمة أو اكتب مسمى جديداً مثل: مدير ادارة', en: 'Pick from list or type a new title, e.g. Admin Manager' },
+  'ad.roleCustomNote': { ar: 'دور مخصص — حدد الصلاحيات يدوياً بالأسفل', en: 'Custom role — set permissions manually below' },
   'ad.pin': { ar: 'الرقم السري', en: 'PIN' },
   'ad.active': { ar: 'نشط', en: 'Active' },
   'ad.delete': { ar: 'حذف', en: 'Delete' },

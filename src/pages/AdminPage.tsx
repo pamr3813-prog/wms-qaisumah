@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { PERMS, PERM_LABELS, ROLES, roleLabel, useStore, type PermKey, type User } from '@/lib/db'
+import { PERMS, PERM_LABELS, ROLES, roleLabel, normalizeRole, useStore, type PermKey, type User } from '@/lib/db'
 import { useLang } from '@/lib/i18n'
 import type { RoleKey } from '@/types'
 
@@ -43,7 +43,7 @@ export default function AdminPage() {
   const { t, lang } = useLang()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
-  const [form, setForm] = useState({ name: '', email: '', role: 'storekeeper' as RoleKey, pin: '0000', active: true })
+  const [form, setForm] = useState({ name: '', email: '', role: 'storekeeper', pin: '0000', active: true })
   const [perms, setPerms] = useState<PermForm>(emptyPermForm())
 
   function openNew() {
@@ -61,7 +61,8 @@ export default function AdminPage() {
   }
 
   async function save() {
-    if (!form.name.trim() || !form.email.trim()) {
+    const role = normalizeRole(form.role)
+    if (!form.name.trim() || !form.email.trim() || !role) {
       toast.error(t('ad.err'))
       return
     }
@@ -70,7 +71,7 @@ export default function AdminPage() {
         id: editing?.id,
         name: form.name.trim(),
         email: form.email.trim(),
-        role: form.role,
+        role,
         pin: form.pin || '0000',
         active: form.active,
         permOverrides: formToOverrides(perms),
@@ -120,11 +121,20 @@ export default function AdminPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>{t('ad.role')}</Label>
-                  <select className="h-9 w-full rounded-md border bg-background px-3 text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as RoleKey })}>
+                  <Input
+                    list="wms-role-list"
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                    placeholder={t('ad.roleHint')}
+                  />
+                  <datalist id="wms-role-list">
                     {(Object.keys(ROLES) as RoleKey[]).map((r) => (
-                      <option key={r} value={r}>{roleLabel(r, lang)}</option>
+                      <option key={r} value={roleLabel(r, lang)} />
                     ))}
-                  </select>
+                  </datalist>
+                  {form.role.trim() && !(Object.keys(ROLES) as string[]).includes(normalizeRole(form.role)) && (
+                    <p className="text-xs text-amber-600">{t('ad.roleCustomNote')}</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label>{t('ad.pin')}</Label>

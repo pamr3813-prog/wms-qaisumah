@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { fetchUsers, ROLES, ROLES_EN, useStore, type User } from '@/lib/db'
+import { fetchUsers, roleLabel, useStore, type User } from '@/lib/db'
 import { useLang } from '@/lib/i18n'
 
 export default function LoginPage() {
@@ -68,7 +68,7 @@ export default function LoginPage() {
               <option value="">—</option>
               {users.map((u) => {
                 // المسمى حسب لغة الواجهة: عربي في العربية، وإنجليزي كبير (SITE MANAGER) في الإنجليزية
-                const rl = lang === 'ar' ? (ROLES[u.role] ?? u.role) : (ROLES_EN[u.role] ?? u.role).toUpperCase()
+                const rl = roleLabel(u.role, lang)
                 // لا تكرار: أظهر المسمى فقط إذا لم يكن جزءاً من اسم المستخدم أصلاً
                 const parts = [u.name]
                 if (!u.name.toLowerCase().includes(rl.toLowerCase())) parts.push(rl)
