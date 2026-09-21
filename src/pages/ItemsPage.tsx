@@ -115,8 +115,8 @@ export default function ItemsPage() {
               const low = s <= i.minStock
               return (
                 <TableRow key={i.id}>
-                  <TableCell className="font-mono font-medium">{i.partNo}</TableCell>
-                  <TableCell>{i.description}</TableCell>
+                  <TableCell className="whitespace-normal break-all font-mono font-medium">{i.partNo}</TableCell>
+                  <TableCell className="max-w-96 whitespace-normal break-words">{i.description}</TableCell>
                   <TableCell>{i.category}</TableCell>
                   <TableCell>{i.uom}</TableCell>
                   <TableCell>

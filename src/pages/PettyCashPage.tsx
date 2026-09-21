@@ -129,7 +129,7 @@ export default function PettyCashPage() {
                 <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                 <TableCell className="whitespace-nowrap">{fmtDate(p.date)}</TableCell>
                 <TableCell><Badge variant="secondary">{p.department}</Badge></TableCell>
-                <TableCell>{p.description}</TableCell>
+                <TableCell className="max-w-96 whitespace-normal break-words">{p.description}</TableCell>
                 <TableCell className="font-mono text-xs">{p.invoiceNo}</TableCell>
                 <TableCell className="text-center">{p.qty ?? '—'}</TableCell>
                 <TableCell className="text-center">{fmtMoney(p.unitPrice)}</TableCell>

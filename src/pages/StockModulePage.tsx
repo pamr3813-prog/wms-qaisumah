@@ -111,16 +111,16 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
                   <TableCell className="text-muted-foreground">{i.no}</TableCell>
                   <TableCell><Badge variant="outline">{i.airport}</Badge></TableCell>
                   <TableCell><Badge variant="secondary" className="bg-orange-50 text-orange-700">{sectionLabel(i.section, lang)}</Badge></TableCell>
-                  <TableCell className="max-w-72">{i.description}</TableCell>
-                  <TableCell className="text-muted-foreground">{i.manufacturer}</TableCell>
-                  <TableCell className="font-mono text-xs">{i.partNo}</TableCell>
+                  <TableCell className="max-w-72 whitespace-normal break-words">{i.description}</TableCell>
+                  <TableCell className="whitespace-normal break-words text-muted-foreground">{i.manufacturer}</TableCell>
+                  <TableCell className="whitespace-normal break-all font-mono text-xs">{i.partNo}</TableCell>
                   <TableCell className="text-center">{i.uom}</TableCell>
                   <TableCell className="text-center">{i.qty}</TableCell>
                   <TableCell className="text-center text-orange-600">{i.used}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant={actual > 0 ? 'secondary' : 'destructive'}>{actual}</Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{i.remarks ?? ''}</TableCell>
+                  <TableCell className="max-w-56 whitespace-normal break-words text-muted-foreground">{i.remarks ?? ''}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
                       <UseDialog

@@ -131,8 +131,8 @@ export default function InventoryPage() {
                   <TableCell>
                     <Badge variant="secondary" className={catBadge(r).cls}>{catBadge(r).label}</Badge>
                   </TableCell>
-                  <TableCell className="font-mono font-medium">{r.partNo || '—'}</TableCell>
-                  <TableCell>{r.description}</TableCell>
+                  <TableCell className="whitespace-normal break-all font-mono font-medium">{r.partNo || '—'}</TableCell>
+                  <TableCell className="max-w-96 whitespace-normal break-words">{r.description}</TableCell>
                   <TableCell>{r.uom}</TableCell>
                   <TableCell className="text-lg font-bold">{r.qty}</TableCell>
                   <TableCell>
