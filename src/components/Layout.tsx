@@ -15,6 +15,8 @@ import {
   Bell,
   Users,
   WifiOff,
+  Menu,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 import { roleLabel, useStore } from '@/lib/db'
@@ -45,6 +47,7 @@ export default function Layout() {
   const { currentUser, logout, online, myUnread, db, send } = useStore()
   const navigate = useNavigate()
   const [notifOpen, setNotifOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
 
   const isAdmin = currentUser?.role === 'admin'
   const isSupervisor = currentUser?.role === 'siteSupervisor'
@@ -68,8 +71,19 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-muted/30">
-      {/* الشريط الجانبي */}
-      <aside className="fixed inset-y-0 start-0 z-40 flex w-60 flex-col border-e bg-card print:hidden">
+      {/* الشريط الجانبي — ثابت على الشاشات الكبيرة، درج منزلق على الجوال */}
+      <aside
+        className={`fixed inset-y-0 start-0 z-50 flex w-64 flex-col border-e bg-card transition-transform duration-200 print:hidden md:z-40 md:w-60 md:translate-x-0 ${
+          navOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
+        }`}
+      >
+        <button
+          onClick={() => setNavOpen(false)}
+          className="absolute end-2 top-2 rounded-md p-1 text-muted-foreground hover:bg-muted md:hidden"
+          aria-label="close"
+        >
+          <X className="size-4" />
+        </button>
         <div className="border-b px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -94,6 +108,7 @@ export default function Layout() {
               key={to}
               to={to}
               end={to === '/'}
+              onClick={() => setNavOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -107,6 +122,7 @@ export default function Layout() {
           {isAdmin && (
             <NavLink
               to="/admin"
+              onClick={() => setNavOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -122,16 +138,24 @@ export default function Layout() {
         <div className="border-t p-3 text-xs text-muted-foreground">{t('app.footer')}</div>
       </aside>
 
+      {/* خلفية معتمة تغلق الدرج عند اللمس على الجوال */}
+      {navOpen && (
+        <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setNavOpen(false)} />
+      )}
+
       {/* المحتوى */}
-      <div className="ms-60 flex min-h-screen flex-col print:ms-0">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-card/80 px-6 py-3 backdrop-blur print:hidden">
+      <div className="flex min-h-screen flex-col ms-0 md:ms-60 print:ms-0">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-card/80 px-3 py-2.5 backdrop-blur md:px-6 md:py-3 print:hidden">
           <div className="flex items-center gap-3">
+            <Button variant="outline" size="icon" className="md:hidden" onClick={() => setNavOpen(true)} aria-label="menu">
+              <Menu className="size-4" />
+            </Button>
             {!online && (
               <Badge variant="destructive" className="gap-1">
                 <WifiOff className="size-3" /> {t('auth.offline')}
               </Badge>
             )}
-            <span className="text-sm text-muted-foreground">{t('role.hint')}</span>
+            <span className="hidden text-sm text-muted-foreground md:inline">{t('role.hint')}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -174,10 +198,10 @@ export default function Layout() {
 
             {/* المستخدم الحالي */}
             {currentUser && (
-              <div className="flex items-center gap-2 rounded-md border px-3 py-1.5">
-                <div className="text-end leading-tight">
-                  <div className="text-sm font-semibold">{currentUser.name}</div>
-                  <div className="text-[11px] text-muted-foreground">{roleLabel(currentUser.role, lang)}</div>
+              <div className="flex items-center gap-2 rounded-md border px-2 py-1.5 md:px-3">
+                <div className="min-w-0 text-end leading-tight">
+                  <div className="max-w-[8.5rem] truncate text-sm font-semibold md:max-w-none">{currentUser.name}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">{roleLabel(currentUser.role, lang)}</div>
                 </div>
                 <Button variant="ghost" size="icon" onClick={signOut} title={t('auth.logout')}>
                   <LogOut className="size-4 text-destructive" />
@@ -187,7 +211,7 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-3 md:p-6">
           <Outlet />
         </main>
       </div>
