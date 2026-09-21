@@ -118,7 +118,7 @@ export default function AdminPage() {
                 <Label>{t('ad.email')}</Label>
                 <Input dir="ltr" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="name@company.sa" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>{t('ad.role')}</Label>
                   <Input

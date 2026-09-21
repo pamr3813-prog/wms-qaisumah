@@ -317,7 +317,7 @@ function ItemDialog({
         <DialogHeader>
           <DialogTitle>{initial ? `${t('common.edit')} — #${initial.no}` : `${t('st.new')} — #${nextNo}`}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-3 py-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
           <div className="space-y-1.5">
             <Label>{t('st.airport')}</Label>
             <Input value={airport} onChange={(e) => setAirport(e.target.value)} />
@@ -326,7 +326,7 @@ function ItemDialog({
             <Label>{t('st.section')}</Label>
             <Input value={section} onChange={(e) => setSection(e.target.value)} placeholder="JANITORIAL / ELECTRICAL…" />
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <Label>{lang === 'ar' ? 'وصف الصنف' : 'Item description'}</Label>
             <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
@@ -346,7 +346,7 @@ function ItemDialog({
             <Label>{t('st.receivedQty')}</Label>
             <Input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} />
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <Label>{t('common.notes')}</Label>
             <Input value={remarks} onChange={(e) => setRemarks(e.target.value)} />
           </div>

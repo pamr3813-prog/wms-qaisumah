@@ -109,7 +109,7 @@ export function SearchableSelect({
       )}
 
       {open && (
-        <div className="absolute z-50 mt-1 max-h-64 w-full min-w-72 overflow-auto rounded-md border bg-popover shadow-lg">
+        <div className="absolute z-50 mt-1 max-h-64 w-full max-w-[calc(100vw-2rem)] min-w-56 overflow-auto rounded-md border bg-popover shadow-lg">
           {filtered.length === 0 && (
             <div className="px-3 py-2 text-sm text-muted-foreground">—</div>
           )}

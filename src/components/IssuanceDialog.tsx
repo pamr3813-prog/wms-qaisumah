@@ -80,7 +80,7 @@ export function IssuanceDialog() {
           {t('is.new')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{t('is.new')}</DialogTitle>
         </DialogHeader>
@@ -95,7 +95,7 @@ export function IssuanceDialog() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t('common.qty')}</Label>
               <Input type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} />

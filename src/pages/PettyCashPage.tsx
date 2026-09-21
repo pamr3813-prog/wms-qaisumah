@@ -254,11 +254,11 @@ function EntryDialog({
           <Button><Plus className="me-2 size-4" /> {t('pc.add')}</Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{initial ? t('common.edit') : t('pc.newEntry')}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-3 py-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
           <div className="space-y-1.5">
             <Label>{t('pc.month')}</Label>
             <select className="h-9 w-full rounded-md border bg-background px-3 text-sm" value={month} onChange={(e) => setMonth(e.target.value)}>
@@ -282,7 +282,7 @@ function EntryDialog({
             <Label>{t('pc.invoiceNo')}</Label>
             <Input value={invoice} onChange={(e) => setInvoice(e.target.value)} />
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <Label>{lang === 'ar' ? 'وصف الصنف' : 'Item description'}</Label>
             <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
@@ -294,12 +294,12 @@ function EntryDialog({
             <Label>{t('pc.unitPrice')}</Label>
             <Input type="number" min="0" step="0.01" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
           </div>
-          <div className="col-span-2 rounded-md bg-muted p-3 text-sm">
+          <div className="sm:col-span-2 rounded-md bg-muted p-3 text-sm">
             <div className="flex justify-between"><span>{t('pc.price')}</span><span>{fmtMoney(price)}</span></div>
             <div className="flex justify-between text-muted-foreground"><span>{t('pc.vat')}</span><span>{fmtMoney(vat)}</span></div>
             <div className="flex justify-between border-t pt-1 font-bold"><span>{t('common.total')}</span><span>{fmtMoney(total)}</span></div>
           </div>
-          <div className="col-span-2 space-y-1.5">
+          <div className="sm:col-span-2 space-y-1.5">
             <Label>{t('common.notes')}</Label>
             <Input value={remarks} onChange={(e) => setRemarks(e.target.value)} />
           </div>

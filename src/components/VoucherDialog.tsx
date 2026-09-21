@@ -184,7 +184,7 @@ export function VoucherDialog({ type }: { type: MovementType }) {
           {isIn ? t('v.in.new') : t('v.out.new')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{isIn ? t('v.in.new') : t('v.out.new')}</DialogTitle>
         </DialogHeader>
@@ -203,7 +203,7 @@ export function VoucherDialog({ type }: { type: MovementType }) {
         {isIn && tab === 'petty' ? (
           /* ===== قسم المشتريات المسجلة في البيتي كاش ===== */
           <div className="space-y-3 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>{t('pc.month')}</Label>
                 <select className="h-9 w-full rounded-md border bg-background px-3 text-sm" value={pcMonth} onChange={(e) => setPcMonth(e.target.value)}>
@@ -222,7 +222,7 @@ export function VoucherDialog({ type }: { type: MovementType }) {
                 <Label>{t('pc.invoiceNo')}</Label>
                 <Input value={pcInvoice} onChange={(e) => setPcInvoice(e.target.value)} />
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label>{lang === 'ar' ? 'وصف المشتريات' : 'Purchase description'}</Label>
                 <Input value={pcDesc} onChange={(e) => setPcDesc(e.target.value)} />
               </div>
@@ -234,12 +234,12 @@ export function VoucherDialog({ type }: { type: MovementType }) {
                 <Label>{t('pc.unitPrice')}</Label>
                 <Input type="number" min="0" step="0.01" value={pcPrice} onChange={(e) => setPcPrice(e.target.value)} />
               </div>
-              <div className="col-span-2 rounded-md bg-muted p-3 text-sm">
+              <div className="sm:col-span-2 rounded-md bg-muted p-3 text-sm">
                 <div className="flex justify-between"><span>{t('pc.price')}</span><span>{fmtMoney(price)}</span></div>
                 <div className="flex justify-between text-muted-foreground"><span>{t('pc.vat')}</span><span>{fmtMoney(vat)}</span></div>
                 <div className="flex justify-between border-t pt-1 font-bold"><span>{t('common.total')}</span><span>{fmtMoney(total)}</span></div>
               </div>
-              <div className="col-span-2 space-y-1.5">
+              <div className="sm:col-span-2 space-y-1.5">
                 <Label>{t('common.notes')}</Label>
                 <Input value={pcRemarks} onChange={(e) => setPcRemarks(e.target.value)} />
               </div>
@@ -249,7 +249,7 @@ export function VoucherDialog({ type }: { type: MovementType }) {
         ) : (
           /* ===== قسم الاستلام إلى المخزون / سند الصادر ===== */
           <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>{t('v.dateLabel')}</Label>
                 <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -276,7 +276,7 @@ export function VoucherDialog({ type }: { type: MovementType }) {
                 <div key={r.key} className="flex items-center gap-2">
                   <span className="w-6 text-center text-sm text-muted-foreground">{idx + 1}</span>
                   <SearchableSelect
-                    className="flex-1"
+                    className="min-w-0 flex-1"
                     options={stockOptions}
                     value={r.ref}
                     onChange={(v) => setRows(rows.map((x) => (x.key === r.key ? { ...x, ref: v } : x)))}

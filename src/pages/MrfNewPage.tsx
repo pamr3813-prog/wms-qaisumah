@@ -159,7 +159,7 @@ export default function MrfNewPage() {
       {/* ترويسة النموذج */}
       <Card>
         <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t('f.site')}</Label>
               <Input value={site} onChange={(e) => setSite(e.target.value)} className={inputCls} />
@@ -177,7 +177,7 @@ export default function MrfNewPage() {
               <Input type="date" value={requiredDate} onChange={(e) => setRequiredDate(e.target.value)} className={inputCls} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{t('f.requestedBy')}</Label>
               <Input value={requestedBy} onChange={(e) => setRequestedBy(e.target.value)} className={inputCls} />
