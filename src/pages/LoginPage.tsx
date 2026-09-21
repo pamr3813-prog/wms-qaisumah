@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { fetchUsers, roleLabel, useStore, type User } from '@/lib/db'
+import { SearchableSelect } from '@/components/SearchableSelect'
 import { useLang } from '@/lib/i18n'
 
 export default function LoginPage() {
@@ -60,25 +61,19 @@ export default function LoginPage() {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>{t('auth.user')}</Label>
-            <select
-              className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-            >
-              <option value="">—</option>
-              {users.map((u) => {
+            <SearchableSelect
+              options={users.map((u) => {
                 // المسمى حسب لغة الواجهة: عربي في العربية، وإنجليزي كبير (SITE MANAGER) في الإنجليزية
                 const rl = roleLabel(u.role, lang)
                 // لا تكرار: أظهر المسمى فقط إذا لم يكن جزءاً من اسم المستخدم أصلاً
                 const parts = [u.name]
                 if (!u.name.toLowerCase().includes(rl.toLowerCase())) parts.push(rl)
-                return (
-                  <option key={u.id} value={u.id}>
-                    {parts.join(' — ')}
-                  </option>
-                )
+                return { value: u.id, label: parts.join(' — ') }
               })}
-            </select>
+              value={userId}
+              onChange={setUserId}
+              placeholder="—"
+            />
           </div>
           <div className="space-y-1.5">
             <Label>{t('auth.pin')}</Label>
