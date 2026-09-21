@@ -25,27 +25,17 @@ export function fmtDateTime(iso?: string): string {
   return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`
 }
 
-const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩'
-
 /** لغة الواجهة الحالية — تضبطها شاشة التطبيق الرئيسية عند تبديل اللغة */
 let currentLang: 'ar' | 'en' = 'ar'
 export function setMoneyLang(l: 'ar' | 'en'): void {
   currentLang = l
 }
 
-/** تحويل الأرقام الإنجليزية إلى أرقام عربية مع فواصل عربية */
-function toArabicDigits(s: string): string {
-  return s
-    .replace(/[0-9]/g, (d) => AR_DIGITS[Number(d)])
-    .replace(/,/g, '٬')
-    .replace(/\./g, '٫')
-}
-
-/** المبالغ تتبع لغة الواجهة: أرقام عربية + ر.س في العربية، وأرقام إنجليزية + SAR في الإنجليزية */
+/** المبالغ بأرقام لاتينية دائماً (مطابقة لملفات الإكسيل) — العملة فقط تتبع اللغة: ر.س / SAR */
 export function fmtMoney(n?: number | null): string {
   if (n === undefined || n === null || Number.isNaN(n)) return '—'
   const s = n.toLocaleString('en-US', { maximumFractionDigits: 2 })
-  return currentLang === 'ar' ? `${toArabicDigits(s)} ر.س` : `${s} SAR`
+  return currentLang === 'ar' ? `${s} ر.س` : `${s} SAR`
 }
 
 /** المبالغ بالأرقام الإنجليزية دائماً — للمستندات الرسمية الإنجليزية (نموذج MRF) */
