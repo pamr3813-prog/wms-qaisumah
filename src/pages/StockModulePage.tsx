@@ -18,6 +18,7 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
   const { db, send, can, currentUser } = useStore()
   const { t, lang } = useLang()
   const [section, setSection] = useState('')
+  const [q, setQ] = useState('')
   const [exporting, setExporting] = useState(false)
   const editable = can('canIssueStock')
 
@@ -28,7 +29,18 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
     () => Array.from(new Set(list.map((i) => i.section).filter(Boolean))).sort(),
     [list],
   )
-  const filtered = useMemo(() => list.filter((i) => !section || i.section === section), [list, section])
+  const ql = q.trim().toLowerCase()
+  const filtered = useMemo(
+    () =>
+      list.filter((i) => !section || i.section === section).filter((i) =>
+        !ql ||
+        i.description.toLowerCase().includes(ql) ||
+        (i.partNo ?? '').toLowerCase().includes(ql) ||
+        (i.manufacturer ?? '').toLowerCase().includes(ql) ||
+        (i.section ?? '').toLowerCase().includes(ql),
+      ),
+    [list, section, ql],
+  )
 
   const totals = useMemo(
     () => ({
@@ -48,6 +60,7 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
           <p className="text-xs text-muted-foreground">{t('st.imported')} — {filtered.length} / {list.length}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-44 md:w-56" />
           <SearchableSelect
             className="w-56"
             options={[

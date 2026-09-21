@@ -45,6 +45,16 @@ export default function AdminPage() {
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState({ name: '', email: '', role: 'storekeeper', pin: '0000', active: true })
   const [perms, setPerms] = useState<PermForm>(emptyPermForm())
+  const [q, setQ] = useState('')
+  const ql = q.trim().toLowerCase()
+  const filteredUsers = db.users.filter(
+    (u) =>
+      !ql ||
+      u.name.toLowerCase().includes(ql) ||
+      (u.email ?? '').toLowerCase().includes(ql) ||
+      roleLabel(u.role, lang).toLowerCase().includes(ql) ||
+      u.role.toLowerCase().includes(ql),
+  )
 
   function openNew() {
     setEditing(null)
@@ -94,17 +104,19 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <Users className="size-6" /> {t('ad.title')}
           </h1>
           <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{t('ad.subtitle')}</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNew}><Plus className="me-2 size-4" /> {t('ad.add')}</Button>
-          </DialogTrigger>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-44 md:w-56" />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openNew}><Plus className="me-2 size-4" /> {t('ad.add')}</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editing ? t('ad.edit') : t('ad.add')}</DialogTitle>
@@ -179,6 +191,7 @@ export default function AdminPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -194,7 +207,7 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {db.users.map((u) => (
+              {filteredUsers.map((u) => (
                 <TableRow key={u.id} className={u.active ? '' : 'opacity-50'}>
                   <TableCell className="font-medium">{u.name}</TableCell>
                   <TableCell dir="ltr" className="text-end text-sm">{u.email}</TableCell>

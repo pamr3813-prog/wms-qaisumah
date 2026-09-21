@@ -19,6 +19,15 @@ export default function ItemsPage() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({ partNo: '', description: '', uom: 'قطعة', category: '', minStock: '5' })
   const editable = can('canEditItems')
+  const [q, setQ] = useState('')
+  const ql = q.trim().toLowerCase()
+  const filtered = db.items.filter(
+    (i) =>
+      !ql ||
+      i.partNo.toLowerCase().includes(ql) ||
+      i.description.toLowerCase().includes(ql) ||
+      (i.category ?? '').toLowerCase().includes(ql),
+  )
 
   async function submit() {
     if (!form.partNo.trim() || !form.description.trim()) return
@@ -96,12 +105,15 @@ export default function ItemsPage() {
         )}
       </div>
 
+      <div className="flex items-center gap-2">
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="max-w-xs" />
+      </div>
+
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('items.partNo')}</TableHead>
-              <TableHead>{t('items.description')}</TableHead>
+              <TableHead>{t('items.partNo')}</TableHead>              <TableHead>{t('items.description')}</TableHead>
               <TableHead>{t('items.category')}</TableHead>
               <TableHead>{t('items.uom')}</TableHead>
               <TableHead>{t('items.stock')}</TableHead>
@@ -110,7 +122,7 @@ export default function ItemsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {db.items.map((i) => {
+            {filtered.map((i) => {
               const s = stock(i.id)
               const low = s <= i.minStock
               return (

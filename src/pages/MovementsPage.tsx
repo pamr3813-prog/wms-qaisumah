@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { AttachmentList } from '@/components/AttachmentUploader'
 import { VoucherDialog } from '@/components/VoucherDialog'
@@ -15,19 +17,28 @@ export default function MovementsPage({ type }: { type: MovementType }) {
   const { db, can, currentUser, send } = useStore()
   const { t, lang } = useLang()
   const isIn = type === 'in'
-  const list = db.movements.filter((m) => m.type === type)
+  const [q, setQ] = useState('')
+  const ql = q.trim().toLowerCase()
+  const hit = (...vals: Array<string | null | undefined>) => !ql || vals.some((v) => (v ?? '').toLowerCase().includes(ql))
   /* الصنف من أي مصدر: المستودع أو مواد النظافة أو المستهلكات */
   const itemName = (m: (typeof db.movements)[number]) => {
     if (!m.kind || m.kind === 'warehouse') return db.items.find((i) => i.id === m.itemId)
     const mod = m.kind === 'janitorial' ? db.janitorial : db.consumables
     return mod.find((i) => i.id === m.itemId)
   }
+  const list = db.movements
+    .filter((m) => m.type === type)
+    .filter((m) => hit(m.voucherNo, m.refNo, m.createdBy, m.notes, itemName(m)?.description, itemName(m)?.partNo))
   const editable = can('canEditVouchers')
-  const pendingIssuances = isIn ? [] : db.issuances.filter((i) => i.status === 'pending')
+  const pendingIssuances = isIn
+    ? []
+    : db.issuances.filter((i) => i.status === 'pending').filter((i) => hit(i.itemDescription, i.partNo, i.department, i.createdBy, i.receiverName, i.voucherNo))
   /* الصادر المعتمد من مواد النظافة والمستهلكات — يظهر في سندات الصادر */
   const moduleIssuances = isIn
     ? []
-    : db.issuances.filter((i) => i.status === 'approved' && (i.kind === 'janitorial' || i.kind === 'consumables'))
+    : db.issuances
+        .filter((i) => i.status === 'approved' && (i.kind === 'janitorial' || i.kind === 'consumables'))
+        .filter((i) => hit(i.itemDescription, i.partNo, i.department, i.createdBy, i.receiverName, i.voucherNo))
 
   async function approve(id: string) {
     try {
@@ -39,16 +50,19 @@ export default function MovementsPage({ type }: { type: MovementType }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{isIn ? t('v.in.title') : t('v.out.title')}</h1>
-        {editable ? (
-          <div className="flex gap-2">
-            {!isIn && <IssuanceDialog />}
-            <VoucherDialog type={type} />
-          </div>
-        ) : (
-          <ReadOnlyBanner />
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-44 md:w-56" />
+          {editable ? (
+            <div className="flex gap-2">
+              {!isIn && <IssuanceDialog />}
+              <VoucherDialog type={type} />
+            </div>
+          ) : (
+            <ReadOnlyBanner />
+          )}
+        </div>
       </div>
 
       {!isIn && pendingIssuances.length > 0 && (

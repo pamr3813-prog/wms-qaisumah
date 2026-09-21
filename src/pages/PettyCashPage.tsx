@@ -23,6 +23,7 @@ export default function PettyCashPage() {
   const { t, lang } = useLang()
   const [month, setMonth] = useState('SEP-2026')
   const [dept, setDept] = useState('')
+  const [q, setQ] = useState('')
   const [exporting, setExporting] = useState(false)
   const editable = can('canEditPetty')
 
@@ -36,13 +37,21 @@ export default function PettyCashPage() {
     return Array.from(set).sort()
   }, [db.pettyCash])
 
+  const ql = q.trim().toLowerCase()
   const filtered = useMemo(
     () =>
       db.pettyCash
         .filter((p) => p.month === month)
         .filter((p) => !dept || p.department === dept)
+        .filter((p) =>
+          !ql ||
+          p.description.toLowerCase().includes(ql) ||
+          (p.invoiceNo ?? '').toLowerCase().includes(ql) ||
+          (p.department ?? '').toLowerCase().includes(ql) ||
+          (p.remarks ?? '').toLowerCase().includes(ql),
+        )
         .sort((a, b) => Number(a.date?.slice(-2)) - Number(b.date?.slice(-2))),
-    [db.pettyCash, month, dept],
+    [db.pettyCash, month, dept, ql],
   )
 
   const monthTotal = filtered.reduce((s, p) => s + (p.total ?? 0), 0)
@@ -94,6 +103,10 @@ export default function PettyCashPage() {
               <option value="">{t('common.all')}</option>
               {departments.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('common.search')}</Label>
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-52" />
           </div>
           <div className="ms-auto text-end">
             <div className="text-xs text-muted-foreground">

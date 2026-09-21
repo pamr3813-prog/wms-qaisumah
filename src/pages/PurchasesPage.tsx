@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { nextApproval, mrfTotal, ROLES, useStore } from '@/lib/db'
@@ -33,14 +35,29 @@ export function priorityBadge(p: Priority) {
 export default function PurchasesPage() {
   const { db } = useStore()
   const { t } = useLang()
+  const [q, setQ] = useState('')
+  const ql = q.trim().toLowerCase()
+  const filtered = db.mrfs.filter(
+    (m) =>
+      !ql ||
+      m.mrfNo.toLowerCase().includes(ql) ||
+      (m.site ?? '').toLowerCase().includes(ql) ||
+      (m.department ?? '').toLowerCase().includes(ql) ||
+      (m.requestedBy ?? '').toLowerCase().includes(ql) ||
+      (m.remarks ?? '').toLowerCase().includes(ql) ||
+      m.items.some((i) => i.description.toLowerCase().includes(ql) || i.partNo.toLowerCase().includes(ql)),
+  )
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t('p.title')}</h1>
-        <Link to="/purchases/new">
-          <Button><Plus className="me-2 size-4" /> {t('p.new')}</Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-44 md:w-56" />
+          <Link to="/purchases/new">
+            <Button><Plus className="me-2 size-4" /> {t('p.new')}</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card">
@@ -58,7 +75,7 @@ export default function PurchasesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {db.mrfs.map((m) => {
+            {filtered.map((m) => {
               const nxt = nextApproval(m)
               return (
                 <TableRow key={m.id}>

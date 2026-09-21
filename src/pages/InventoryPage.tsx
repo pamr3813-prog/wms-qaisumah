@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { actualOf, useStore } from '@/lib/db'
 import { useLang } from '@/lib/i18n'
@@ -28,6 +29,7 @@ export default function InventoryPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [cat, setCat] = useState<Cat>('all')
   const [sec, setSec] = useState<string>('all')
+  const [q, setQ] = useState('')
 
   const rows = useMemo<StockRow[]>(() => {
     const warehouse: StockRow[] = db.items.map((i) => {
@@ -51,11 +53,13 @@ export default function InventoryPage() {
     return [...warehouse, ...fromModule(db.janitorial, 'janitorial'), ...fromModule(db.consumables, 'consumables')]
   }, [db.items, db.janitorial, db.consumables, stock])
 
+  const ql = q.trim().toLowerCase()
   const filtered = useMemo(() => {
     let r = cat === 'all' ? rows : rows.filter((x) => x.cat === cat)
     if (cat === 'consumables' && sec !== 'all') r = r.filter((x) => (x.section ?? '').trim() === sec)
+    if (ql) r = r.filter((x) => x.partNo.toLowerCase().includes(ql) || x.description.toLowerCase().includes(ql))
     return r
-  }, [rows, cat, sec])
+  }, [rows, cat, sec, ql])
 
   const sections = useMemo(
     () => [...new Set(db.consumables.map((i) => (i.section ?? '').trim()).filter(Boolean))].sort(),
@@ -85,6 +89,7 @@ export default function InventoryPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">{t('inv.title')}</h1>
           <div className="flex flex-wrap items-center gap-1.5">
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="h-9 w-40 md:w-52" />
             {CATS.map((c) => (
               <Button
                 key={c.id}
