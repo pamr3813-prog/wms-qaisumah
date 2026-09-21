@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { Plus, Trash2, AlertTriangle } from 'lucide-react'
+import { Link, useNavigate } from 'react-router'
+import { Plus, Trash2, AlertTriangle, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -151,8 +151,11 @@ export default function MrfNewPage() {
   return (
     <div dir="ltr" className="mx-auto max-w-5xl space-y-5">
       {!canCreate && <ReadOnlyBanner />}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('f.title')}</h1>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Link to="/purchases"><Button variant="outline" size="icon"><ArrowRight className="size-4 rtl:rotate-180" /></Button></Link>
+          <h1 className="text-2xl font-bold">{t('f.title')}</h1>
+        </div>
         <Button onClick={submit} disabled={!canCreate || sending}>{sending ? t('ex.exporting') : t('f.submit')}</Button>
       </div>
 

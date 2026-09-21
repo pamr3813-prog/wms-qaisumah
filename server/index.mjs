@@ -611,8 +611,10 @@ app.get('/api/export/:kind', async (req, res) => {
       const rows = db.pettyCash.filter((p) => p.month === m)
       ws.mergeCells('A1:K1')
       const t = ws.getCell('A1')
-      t.value = new Date(MONTH_START[m] || parsePettyDate(rows[0]?.date) || Date.now())
-      t.numFmt = 'mmmm yyyy'
+      /* عنوان الشهر كنص ثابت بأحرف لاتينية — numFmt 'mmmm yyyy' يظهر بالعربية على الجوال */
+      const MONTH_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+      const mStart = MONTH_START[m] ? new Date(MONTH_START[m]) : parsePettyDate(rows[0]?.date)
+      t.value = mStart ? `${MONTH_EN[mStart.getMonth()]} ${mStart.getFullYear()}` : m
       baseStyle(t, { bold: true, size: 16 })
       ws.getRow(1).height = 30
       const hdr = ws.addRow(['S/N', 'DATE', 'DEPARTMENT', 'ITEM DESCRIPTION', 'INVOICE NO', 'QTY', 'UNIT PRICE', 'TOTAL PRICE', 'VAT 15%', 'TOTAL', 'REMARKS'])

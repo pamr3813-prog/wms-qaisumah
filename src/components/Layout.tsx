@@ -17,6 +17,7 @@ import {
   WifiOff,
   Menu,
   X,
+  ArrowRight,
 } from 'lucide-react'
 import { useState } from 'react'
 import { roleLabel, useStore } from '@/lib/db'
@@ -149,6 +150,15 @@ export default function Layout() {
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" className="md:hidden" onClick={() => setNavOpen(true)} aria-label="menu">
               <Menu className="size-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate(-1)}
+              aria-label={t('common.back')}
+              title={t('common.back')}
+            >
+              <ArrowRight className="size-4 rtl:rotate-180" />
             </Button>
             {!online && (
               <Badge variant="destructive" className="gap-1">

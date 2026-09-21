@@ -6,24 +6,23 @@ function parseAnyDate(s: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
+/** تنسيق يدوي بأرقام لاتينية دائماً — toLocaleDateString('ar-SA') تعطي أرقاماً عربية على الجوال */
+function pad2(n: number): string {
+  return String(n).padStart(2, '0')
+}
+
 export function fmtDate(iso?: string): string {
   if (!iso) return '—'
   const d = parseAnyDate(iso)
   if (!d) return iso
-  return d.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`
 }
 
 export function fmtDateTime(iso?: string): string {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleString('ar-SA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`
 }
 
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩'
