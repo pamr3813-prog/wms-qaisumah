@@ -168,11 +168,11 @@ export default function Layout() {
             <span className="hidden text-sm text-muted-foreground md:inline">{t('role.hint')}</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {/* الإشعارات */}
             <Popover open={notifOpen} onOpenChange={setNotifOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="relative" onClick={openNotifications}>
+                <Button variant="outline" size="icon" className="relative shrink-0" onClick={openNotifications}>
                   <Bell className="size-4" />
                   {myUnread > 0 && (
                     <span className="absolute -top-1 -end-1 flex size-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
@@ -187,7 +187,10 @@ export default function Layout() {
                   {db.notifications.length === 0 && (
                     <p className="p-4 text-sm text-muted-foreground">{t('nt.empty')}</p>
                   )}
-                  {db.notifications.slice(0, 30).map((n) => (
+                  {db.notifications
+                    .filter((n) => !n.role || n.role === currentUser?.role)
+                    .slice(0, 30)
+                    .map((n) => (
                     <div key={n.id} className="border-b px-4 py-2 text-sm last:border-0">
                       <p>{n.text}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{fmtDateTime(n.at)}</p>
@@ -200,24 +203,31 @@ export default function Layout() {
             {/* اللغة */}
             <button
               onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-              className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
+              className="flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted"
             >
               <Languages className="size-4" />
-              {t('lang.switch')}
+              <span className="hidden sm:inline">{t('lang.switch')}</span>
             </button>
 
-            {/* المستخدم الحالي */}
+            {/* المستخدم الحالي — الاسم يظهر على الشاشات الأكبر، وزر الخروج دائماً ظاهر */}
             {currentUser && (
-              <div className="flex items-center gap-2 rounded-md border px-2 py-1.5 md:px-3">
+              <div className="hidden items-center gap-2 rounded-md border px-3 sm:flex">
                 <div className="min-w-0 text-end leading-tight">
-                  <div className="max-w-[8.5rem] truncate text-sm font-semibold md:max-w-none">{currentUser.name}</div>
+                  <div className="max-w-56 truncate text-sm font-semibold">{currentUser.name}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{roleLabel(currentUser.role, lang)}</div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={signOut} title={t('auth.logout')}>
-                  <LogOut className="size-4 text-destructive" />
-                </Button>
               </div>
             )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+              title={t('auth.logout')}
+              aria-label={t('auth.logout')}
+              className="shrink-0"
+            >
+              <LogOut className="size-4 text-destructive" />
+            </Button>
           </div>
         </header>
 

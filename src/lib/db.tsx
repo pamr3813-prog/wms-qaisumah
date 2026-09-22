@@ -154,6 +154,8 @@ export interface Notification {
   text: string
   at: string
   readBy: string[]
+  /* دور مستهدف بالإشعار — غائب أو null يعني للجميع */
+  role?: string | null
 }
 
 export interface Issuance {
@@ -416,7 +418,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [currentUser])
 
   const myUnread = useMemo(
-    () => (currentUser ? db.notifications.filter((n) => !n.readBy.includes(currentUser.id)).length : 0),
+    () =>
+      currentUser
+        ? db.notifications.filter(
+            (n) => (!n.role || n.role === currentUser.role) && !n.readBy.includes(currentUser.id),
+          ).length
+        : 0,
     [db.notifications, currentUser],
   )
 

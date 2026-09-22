@@ -226,8 +226,8 @@ if (normalizedCount) console.log(`Normalized ${normalizedCount} petty cash dates
 const sessions = new Map() // token -> userId
 
 // ===== إشعارات =====
-function notify(text) {
-  db.notifications.unshift({ id: uid(), text, at: new Date().toISOString(), readBy: [] })
+function notify(text, role = null) {
+  db.notifications.unshift({ id: uid(), text, at: new Date().toISOString(), readBy: [], role })
   if (db.notifications.length > 200) db.notifications.length = 200
 }
 
@@ -330,9 +330,16 @@ function applyAction(action, user) {
           ? 'approved'
           : 'pending'
       const next = mrf.approvals.find((a) => a.status === 'pending')
-      notify(approve
-        ? `اعتمد ${user.name} الطلب ${mrf.mrfNo}${next ? ` — بانتظار ${next.role}` : ' — اكتملت الاعتمادات'}`
-        : `رفض ${user.name} الطلب ${mrf.mrfNo}: ${note}`)
+      if (approve && !next && mrf.status === 'approved') {
+        /* اكتملت كل التوقيعات — إرسال آلي إلى مسؤول المشتريات لتنفيذ الشراء */
+        mrf.sentToPurchasingAt = now
+        notify(`اكتملت التوقيعات على الطلب ${mrf.mrfNo} — أُرسل إليك آلياً لبدء التنفيذ والشراء`, 'purchasing')
+        notify(`اعتمد ${user.name} الطلب ${mrf.mrfNo} — اكتملت التوقيعات وأُرسل آلياً إلى مسؤول المشتريات`)
+      } else {
+        notify(approve
+          ? `اعتمد ${user.name} الطلب ${mrf.mrfNo}${next ? ` — بانتظار ${next.role}` : ' — اكتملت الاعتمادات'}`
+          : `رفض ${user.name} الطلب ${mrf.mrfNo}: ${note}`)
+      }
       break
     }
 
