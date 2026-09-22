@@ -525,7 +525,12 @@ function applyAction(action, user) {
           const admins = db.users.filter((x) => x.role === 'admin' && x.active && x.id !== u.id)
           if (!admins.length) throw new Error('لا يمكن إلغاء آخر مدير للنظام')
         }
-        Object.assign(target, u)
+        target.name = u.name
+        target.email = u.email
+        target.role = u.role
+        if (u.pin) target.pin = u.pin /* الرقم السري فارغ = الإبقاء على الحالي */
+        target.active = u.active !== false
+        target.permOverrides = u.permOverrides || undefined
         notify(`حدّث المدير بيانات المستخدم ${u.name}`)
       } else {
         db.users.push({ id: uid(), name: u.name, email: u.email, role: u.role, pin: u.pin || '0000', active: u.active !== false, permOverrides: u.permOverrides || undefined, createdAt: now })

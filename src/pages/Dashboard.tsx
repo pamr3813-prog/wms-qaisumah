@@ -1,7 +1,9 @@
 import { Link } from 'react-router'
-import { ArrowDownToLine, ArrowUpFromLine, Boxes, ShoppingCart, AlertTriangle, CheckCircle2, Clock, Banknote, SprayCan, PackageOpen } from 'lucide-react'
+import { ArrowDownToLine, ArrowUpFromLine, Boxes, ShoppingCart, AlertTriangle, CheckCircle2, Clock, Banknote, SprayCan, PackageOpen, Users as UsersIcon, UserCog } from 'lucide-react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { PRIORITIES, nextApproval, roleLabel, useStore } from '@/lib/db'
 import { useLang } from '@/lib/i18n'
 import { fmtDateTime, fmtMoney } from '@/lib/format'
@@ -9,9 +11,19 @@ import { fmtDateTime, fmtMoney } from '@/lib/format'
 const SHEET_ORDER = ['SEPT', 'OCT', 'NOVE', 'DEC', 'JAN-2026', 'FEB-2026', 'MARCH-2026', 'APRIL-2026', 'MAY-2026', 'JUN-2026', 'JULY-2026', 'Aug-2026', 'SEP-2026']
 
 export default function Dashboard() {
-  const { db, stock, currentUser } = useStore()
+  const { db, stock, currentUser, send } = useStore()
   const { t, lang } = useLang()
   const isSupervisor = currentUser?.role === 'siteSupervisor'
+  const isAdmin = currentUser?.role === 'admin'
+
+  async function toggleUserActive(u: (typeof db.users)[number]) {
+    try {
+      await send('upsertUser', { id: u.id, name: u.name, email: u.email, role: u.role, active: !u.active })
+      toast.success(u.active ? t('dash.toggleActive') : t('common.save'))
+    } catch (e) {
+      toast.error((e as Error).message)
+    }
+  }
 
   const lowStock = db.items.filter((i) => stock(i.id) <= i.minStock)
   const pendingForMe = db.mrfs.filter((m) => m.status === 'pending' && nextApproval(m)?.role === currentUser?.role)
@@ -36,7 +48,20 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{t('dash.title')}</h1>
+      {/* ترويسة الداشبورد — شعارات المطار والمجال */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border bg-card p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <img src="/logos/qaisumah-airport.png" alt="Qaisumah Airport" className="size-12 object-contain" />
+          <div className="hidden h-10 w-px bg-border sm:block" />
+          <img src="/logos/al-majal.png" alt="MAG — Al Majal Al Arabi" className="h-10 w-auto object-contain" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold leading-tight md:text-2xl">{t('dash.title')}</h1>
+          <p className="text-xs text-muted-foreground md:text-sm">
+            {lang === 'ar' ? 'مطار القيصومة — المجال العربي' : 'Qaisumah Airport — Al Majal Al Arabi'}
+          </p>
+        </div>
+      </div>
 
       {!isSupervisor && (
         <>
@@ -188,6 +213,53 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* تحكم سريع بالمستخدمين — للمدير فقط */}
+      {isAdmin && (
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <UsersIcon className="size-5 text-primary" />
+                {t('dash.usersTitle')} ({db.users.filter((u) => u.active).length}/{db.users.length})
+              </CardTitle>
+              <Link to="/admin">
+                <Button variant="outline" size="sm">
+                  <UserCog className="me-2 size-4" />
+                  {t('dash.manageUsers')}
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y text-sm">
+              {db.users.map((u) => (
+                <li key={u.id} className={`flex flex-wrap items-center justify-between gap-2 py-2 ${u.active ? '' : 'opacity-50'}`}>
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="min-w-0 break-words font-medium">{u.name}</span>
+                    <Badge variant="secondary">{roleLabel(u.role, lang)}</Badge>
+                  </div>
+                  <button
+                    onClick={() => toggleUserActive(u)}
+                    disabled={u.id === currentUser?.id}
+                    title={t('dash.toggleActive')}
+                    aria-label={`${t('dash.toggleActive')} — ${u.name}`}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:cursor-not-allowed ${
+                      u.active ? 'bg-green-600' : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${
+                        u.active ? (lang === 'ar' ? 'start-0.5' : 'end-0.5') : (lang === 'ar' ? 'end-0.5' : 'start-0.5')
+                      }`}
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

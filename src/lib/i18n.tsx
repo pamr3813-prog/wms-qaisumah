@@ -43,6 +43,8 @@ const dict = {
   'nav.petty': { ar: 'البيتي كاش', en: 'Petty Cash' },
   'nav.janitorial': { ar: 'مواد النظافة', en: 'Janitorial Supplies' },
   'nav.consumables': { ar: 'المستهلكات', en: 'Consumables' },
+  'nav.collapse': { ar: 'طي القائمة الجانبية', en: 'Collapse sidebar' },
+  'nav.expand': { ar: 'فتح القائمة الجانبية', en: 'Expand sidebar' },
 
   // لوحة التحكم
   'dash.title': { ar: 'لوحة التحكم', en: 'Dashboard' },
@@ -64,6 +66,10 @@ const dict = {
   'dash.pettyMonth': { ar: 'مصروف البيتي كاش — الشهر الحالي', en: 'Petty cash — current month' },
   'dash.janitorial': { ar: 'بنود مواد النظافة', en: 'Janitorial line items' },
   'dash.consumables': { ar: 'بنود المستهلكات', en: 'Consumable line items' },
+  'dash.usersTitle': { ar: 'المستخدمون', en: 'Users' },
+  'dash.manageUsers': { ar: 'إدارة كاملة', en: 'Full management' },
+  'dash.toggleActive': { ar: 'تفعيل / إيقاف الدخول', en: 'Enable / disable sign-in' },
+  'dash.activeCount': { ar: 'نشط', en: 'active' },
 
   // الأصناف
   'items.title': { ar: 'الأصناف', en: 'Items' },

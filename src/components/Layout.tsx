@@ -18,6 +18,8 @@ import {
   Menu,
   X,
   ArrowRight,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react'
 import { useState } from 'react'
 import { roleLabel, useStore } from '@/lib/db'
@@ -49,6 +51,14 @@ export default function Layout() {
   const navigate = useNavigate()
   const [notifOpen, setNotifOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  /* طي/فتح القائمة الجانبية على الشاشات الكبيرة — محفوظ في الجهاز */
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('wms-nav-collapsed') === '1')
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      localStorage.setItem('wms-nav-collapsed', c ? '0' : '1')
+      return !c
+    })
+  }
 
   const isAdmin = currentUser?.role === 'admin'
   const isSupervisor = currentUser?.role === 'siteSupervisor'
@@ -74,9 +84,9 @@ export default function Layout() {
     <div className="min-h-screen bg-muted/30">
       {/* الشريط الجانبي — ثابت على الشاشات الكبيرة، درج منزلق على الجوال */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 flex w-64 flex-col border-e bg-card transition-transform duration-200 print:hidden md:z-40 md:w-60 md:translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-50 flex w-64 flex-col border-e bg-card transition-[transform,width] duration-200 print:hidden md:z-40 md:translate-x-0 ${
           navOpen ? 'translate-x-0' : 'ltr:-translate-x-full rtl:translate-x-full'
-        }`}
+        } ${collapsed ? 'md:w-16' : 'md:w-60'}`}
       >
         <button
           onClick={() => setNavOpen(false)}
@@ -88,13 +98,13 @@ export default function Layout() {
         <div className="border-b px-4 py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <img src="/logos/qaisumah-airport.png" alt="Qaisumah Airport" className="size-9 object-contain" />
-              <div>
+              <img src="/logos/qaisumah-airport.png" alt="Qaisumah Airport" className="size-9 shrink-0 object-contain" />
+              <div className={collapsed ? 'hidden md:hidden' : ''}>
                 <div className="text-xs font-bold leading-tight">{lang === 'ar' ? 'مطار القيصومة' : 'Qaisumah Airport'}</div>
                 <div className="text-[10px] font-semibold text-muted-foreground">{t('app.title')}</div>
               </div>
             </div>
-            <div className="text-center">
+            <div className={`text-center ${collapsed ? 'hidden md:hidden' : ''}`}>
               <img src="/logos/al-majal.png" alt="MAG — Al Majal Al Arabi" className="mx-auto h-7 w-auto object-contain" />
               <div className="text-[10px] font-semibold text-muted-foreground">
                 {lang === 'ar' ? 'المجال العربي' : 'Al Majal Al Arabi'}
@@ -103,40 +113,42 @@ export default function Layout() {
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-3">
           {navItems.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/'}
+              title={t(key)}
               onClick={() => setNavOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`
+                  collapsed ? 'md:justify-center md:px-0' : ''
+                } ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`
               }
             >
               <Icon className="size-4 shrink-0" />
-              {t(key)}
+              <span className={collapsed ? 'md:hidden' : ''}>{t(key)}</span>
             </NavLink>
           ))}
           {isAdmin && (
             <NavLink
               to="/admin"
+              title={t('ad.title')}
               onClick={() => setNavOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`
+                  collapsed ? 'md:justify-center md:px-0' : ''
+                } ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`
               }
             >
               <Users className="size-4 shrink-0" />
-              {t('ad.title')}
+              <span className={collapsed ? 'md:hidden' : ''}>{t('ad.title')}</span>
             </NavLink>
           )}
         </nav>
 
-        <div className="border-t p-3 text-xs text-muted-foreground">{t('app.footer')}</div>
+        <div className={`border-t p-3 text-xs text-muted-foreground ${collapsed ? 'hidden md:hidden' : ''}`}>{t('app.footer')}</div>
       </aside>
 
       {/* خلفية معتمة تغلق الدرج عند اللمس على الجوال */}
@@ -145,11 +157,22 @@ export default function Layout() {
       )}
 
       {/* المحتوى */}
-      <div className="flex min-h-screen flex-col ms-0 md:ms-60 print:ms-0">
+      <div className={`flex min-h-screen flex-col ms-0 print:ms-0 ${collapsed ? 'md:ms-16' : 'md:ms-60'}`}>
         <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-card/80 px-3 py-2.5 backdrop-blur md:px-6 md:py-3 print:hidden">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" className="md:hidden" onClick={() => setNavOpen(true)} aria-label="menu">
               <Menu className="size-4" />
+            </Button>
+            {/* زر طي/فتح القائمة الجانبية — على الشاشات الكبيرة فقط */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="hidden md:inline-flex"
+              onClick={toggleCollapsed}
+              aria-label={collapsed ? t('nav.expand') : t('nav.collapse')}
+              title={collapsed ? t('nav.expand') : t('nav.collapse')}
+            >
+              {collapsed ? <PanelLeft className="size-4" /> : <PanelLeftClose className="size-4" />}
             </Button>
             <Button
               variant="outline"
