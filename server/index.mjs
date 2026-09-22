@@ -1,7 +1,7 @@
 // خادم نظام المستودعات والمشتريات — مزامنة سحابية لحظية (WebSocket) + صلاحيات + إشعارات + تصدير Excel
 // التشغيل: node server/index.mjs   (المنفذ 7101، ويتم الوصول عبر proxy من خادم Vite على /api و /ws)
 import { createServer } from 'http'
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import { WebSocketServer } from 'ws'
@@ -10,7 +10,10 @@ import ExcelJS from 'exceljs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT || process.env.WMS_PORT || 7101
-const DATA_FILE = join(__dirname, 'data.json')
+/* مسار قاعدة البيانات: قرص دائم على Render، أو ملف محلي في التطوير */
+const DATA_FILE = process.env.WMS_DATA_FILE || join(__dirname, 'data.json')
+/* لقطة احتياطية مرفقة بالكود — تُستعيد تلقائياً عندما يكون القرص الدائم فارغاً (أول إقلاع) */
+const SNAPSHOT_FILE = join(__dirname, 'data.snapshot.json')
 
 const uid = () => Math.random().toString(36).slice(2, 10)
 
@@ -143,6 +146,15 @@ function loadData() {
   if (existsSync(DATA_FILE)) {
     try { return JSON.parse(readFileSync(DATA_FILE, 'utf-8')) } catch { /* إعادة بذر */ }
   }
+  /* القرص الدائم فارغ (أول إقلاع بعد إرفاق القرص): استعد من اللقطة المرفقة بالكود */
+  if (existsSync(SNAPSHOT_FILE)) {
+    try {
+      const snap = JSON.parse(readFileSync(SNAPSHOT_FILE, 'utf-8'))
+      saveData(snap)
+      console.log('Restored data from bundled snapshot ->', DATA_FILE)
+      return snap
+    } catch { /* لقطة تالفة — أكمل لإعادة البذر */ }
+  }
   const seed = buildSeed()
   saveData(seed)
   return seed
@@ -152,7 +164,12 @@ function loadData() {
 let cloudChain = Promise.resolve()
 function saveData(db) {
   const json = JSON.stringify(db)
-  writeFileSync(DATA_FILE, json)
+  try {
+    mkdirSync(dirname(DATA_FILE), { recursive: true })
+    writeFileSync(DATA_FILE, json)
+  } catch (e) {
+    console.error('local save failed:', e.message)
+  }
   if (CLOUD_MODE) {
     cloudChain = cloudChain.then(() => cloudUpload(json)).catch((e) => console.error('cloud save:', e.message))
   }

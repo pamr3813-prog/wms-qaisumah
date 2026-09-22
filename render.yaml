@@ -3,10 +3,17 @@ services:
   - type: web
     name: wms-qaisumah
     runtime: node
-    plan: free
+    plan: starter
     buildCommand: npm install && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # قاعدة البيانات على القرص الدائم — لا تُفقد مع إعادة النشر أو التشغيل
+      - key: WMS_DATA_FILE
+        value: /var/lib/data/data.json
+    disk:
+      name: wms-data
+      mountPath: /var/lib/data
+      sizeGB: 1
