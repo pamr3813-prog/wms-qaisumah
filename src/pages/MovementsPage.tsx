@@ -8,6 +8,7 @@ import { AttachmentList } from '@/components/AttachmentUploader'
 import { VoucherDialog } from '@/components/VoucherDialog'
 import { IssuanceDialog } from '@/components/IssuanceDialog'
 import { ReadOnlyBanner } from '@/components/ReadOnly'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { useStore } from '@/lib/db'
 import { useLang } from '@/lib/i18n'
 import { fmtDate, fmtDateTime } from '@/lib/format'
@@ -16,6 +17,7 @@ import type { MovementType } from '@/types'
 export default function MovementsPage({ type }: { type: MovementType }) {
   const { db, can, currentUser, send } = useStore()
   const { t, lang } = useLang()
+  const isMobile = useIsMobile()
   const isIn = type === 'in'
   const [q, setQ] = useState('')
   const ql = q.trim().toLowerCase()
@@ -70,6 +72,32 @@ export default function MovementsPage({ type }: { type: MovementType }) {
           <div className="border-b border-amber-300 px-4 py-2 font-semibold text-amber-800">
             {t('is.title')} ({pendingIssuances.length})
           </div>
+          {isMobile ? (
+            <div className="space-y-2 p-2">
+              {pendingIssuances.map((iss) => {
+                const canApprove = currentUser && (currentUser.id === iss.receiverId || can('canManageUsers'))
+                return (
+                  <div key={iss.id} className="rounded-lg border border-amber-200 bg-white p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="break-words font-medium">{iss.itemDescription} <span className="text-muted-foreground">({iss.partNo})</span></p>
+                        <p className="text-xs text-muted-foreground">{iss.department || '—'} · {iss.createdBy} → {iss.receiverName}</p>
+                        <p className="text-xs text-muted-foreground">{fmtDateTime(iss.createdAt)}</p>
+                      </div>
+                      <Badge variant="destructive">−{iss.qty} {iss.uom}</Badge>
+                    </div>
+                    <div className="mt-2 text-end">
+                      {canApprove ? (
+                        <Button size="sm" onClick={() => approve(iss.id)}>{t('is.receive')}</Button>
+                      ) : (
+                        <Badge variant="outline" className="text-amber-700">{t('is.waiting')}</Badge>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -114,6 +142,7 @@ export default function MovementsPage({ type }: { type: MovementType }) {
               })}
             </TableBody>
           </Table>
+          )}
         </div>
       )}
 
@@ -122,6 +151,27 @@ export default function MovementsPage({ type }: { type: MovementType }) {
           <div className="border-b px-4 py-2 font-semibold">
             {t('is.moduleOutTitle')} ({moduleIssuances.length})
           </div>
+          {isMobile ? (
+            <div className="space-y-2 p-2">
+              {moduleIssuances.map((iss) => (
+                <div key={iss.id} className="rounded-lg border bg-background p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-sm font-medium">{iss.voucherNo}</span>
+                    <span className="text-xs text-muted-foreground">{fmtDateTime(iss.approvedAt ?? iss.createdAt)}</span>
+                  </div>
+                  <p className="mt-1 break-words">{iss.itemDescription} <span className="text-muted-foreground">({iss.partNo})</span></p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <Badge variant="destructive">−{iss.qty} {iss.uom}</Badge>
+                    <Badge variant="secondary" className={iss.kind === 'janitorial' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}>
+                      {iss.kind === 'janitorial' ? t('inv.catJanitorial') : t('inv.catConsumables')}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">{iss.department || '—'}</span>
+                    <span className="text-xs text-muted-foreground">{iss.approvedBy ?? iss.createdBy}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -156,9 +206,56 @@ export default function MovementsPage({ type }: { type: MovementType }) {
               ))}
             </TableBody>
           </Table>
+          )}
         </div>
       )}
 
+      {isMobile ? (
+        <div className="space-y-2">
+          {list.map((m) => {
+            const item = itemName(m)
+            return (
+              <div key={m.id} className="rounded-lg border bg-card p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-sm font-medium">{m.voucherNo}</span>
+                  <span className="text-xs text-muted-foreground">{fmtDate(m.date)}</span>
+                </div>
+                <p className="mt-1 break-words">
+                  {item ? `${item.description} (${item.partNo || '—'})` : t('v.deletedItem')}{' '}
+                  {m.kind === 'janitorial' || m.kind === 'consumables' ? (
+                    <Badge variant="secondary" className={m.kind === 'janitorial' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}>
+                      {m.kind === 'janitorial' ? t('inv.catJanitorial') : t('inv.catConsumables')}
+                    </Badge>
+                  ) : null}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Badge variant={isIn ? 'default' : 'destructive'}>
+                    {isIn ? '+' : '−'}{m.qty} {item?.uom}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {m.mrfId ? (
+                      <Link to={`/purchases/${m.mrfId}`} className="text-primary hover:underline">
+                        {db.mrfs.find((x) => x.id === m.mrfId)?.mrfNo ?? m.refNo ?? '—'}
+                      </Link>
+                    ) : (
+                      m.refNo ?? '—'
+                    )}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <AttachmentList attachments={m.attachments} />
+                  <span className="text-xs text-muted-foreground">{m.createdBy}</span>
+                </div>
+              </div>
+            )
+          })}
+          {list.length === 0 && (
+            <div className="rounded-lg border bg-card py-10 text-center text-muted-foreground">
+              {isIn ? t('v.emptyIn') : lang === 'ar' ? 'لا توجد سندات صادر بعد' : 'No outbound vouchers yet'}
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
@@ -216,6 +313,7 @@ export default function MovementsPage({ type }: { type: MovementType }) {
           </TableBody>
         </Table>
       </div>
+      )}
     </div>
   )
 }

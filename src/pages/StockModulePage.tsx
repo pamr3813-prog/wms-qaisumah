@@ -12,11 +12,13 @@ import { useLang } from '@/lib/i18n'
 import { sectionLabel } from '@/lib/sections'
 import { SearchableSelect } from '@/components/SearchableSelect'
 import { ReadOnlyBanner } from '@/components/ReadOnly'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { StockItem, StockKind } from '@/types'
 
 export default function StockModulePage({ kind }: { kind: StockKind }) {
   const { db, send, can, currentUser } = useStore()
   const { t, lang } = useLang()
+  const isMobile = useIsMobile()
   const [section, setSection] = useState('')
   const [q, setQ] = useState('')
   const [exporting, setExporting] = useState(false)
@@ -50,6 +52,48 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
     }),
     [filtered],
   )
+
+  /* أزرار كل صف — تُستخدم في الجدول (شاشة كبيرة) والبطاقات (جوال) */
+  function renderActions(i: StockItem) {
+    const actual = actualOf(i)
+    return (
+      <>
+        <UseDialog
+          item={i}
+          disabled={!editable || actual <= 0}
+          onUse={async (qty, note) => {
+            try {
+              await send('recordUsage', { kind, itemId: i.id, qty, note, by: currentUser?.name })
+              toast.success(t('st.usedOk'))
+            } catch {
+              /* رسالة الخطأ تظهر تلقائياً */
+            }
+          }}
+        />
+        {editable && (
+          <>
+            <ItemDialog kind={kind} send={send} initial={i} />
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t('common.delete')}
+              onClick={async () => {
+                if (!window.confirm(`${t('common.confirmDelete')}\n${i.description}`)) return
+                try {
+                  await send('deleteStockItem', { kind, id: i.id })
+                  toast.success(t('common.deleted'))
+                } catch {
+                  /* رسالة الخطأ تظهر تلقائياً */
+                }
+              }}
+            >
+              <Trash2 className="size-4 text-destructive" />
+            </Button>
+          </>
+        )}
+      </>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -98,6 +142,50 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
         <Badge className="bg-green-600 px-3 py-1.5">{t('st.actualQty')}: {totals.actual}</Badge>
       </div>
 
+      {isMobile ? (
+        <div className="space-y-2">
+          {filtered.map((i) => {
+            const actual = actualOf(i)
+            return (
+              <div key={i.id} className="rounded-lg border bg-card p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span className="text-xs text-muted-foreground">#{i.no}</span>
+                      <Badge variant="outline">{i.airport}</Badge>
+                      <Badge variant="secondary" className="bg-orange-50 text-orange-700">{sectionLabel(i.section, lang)}</Badge>
+                    </div>
+                    <p className="mt-1 break-words font-medium">{i.description}</p>
+                    <p className="break-words text-xs text-muted-foreground">
+                      {[i.manufacturer, i.partNo].filter(Boolean).join(' — ')}
+                      {i.uom ? ` · ${i.uom}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center">{renderActions(i)}</div>
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-center text-sm">
+                  <div className="rounded-md bg-secondary/60 py-1.5">
+                    <div className="text-xs text-muted-foreground">{t('st.receivedQty')}</div>
+                    <div className="font-semibold">{i.qty}</div>
+                  </div>
+                  <div className="rounded-md bg-orange-100 py-1.5">
+                    <div className="text-xs text-orange-700">{t('st.usedQty')}</div>
+                    <div className="font-semibold text-orange-700">{i.used}</div>
+                  </div>
+                  <div className={`rounded-md py-1.5 ${actual > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <div className={`text-xs ${actual > 0 ? 'text-green-700' : 'text-red-700'}`}>{t('st.actualQty')}</div>
+                    <div className={`font-semibold ${actual > 0 ? 'text-green-700' : 'text-red-700'}`}>{actual}</div>
+                  </div>
+                </div>
+                {i.remarks ? <p className="mt-2 break-words text-xs text-muted-foreground">{i.remarks}</p> : null}
+              </div>
+            )
+          })}
+          {filtered.length === 0 && (
+            <div className="rounded-lg border bg-card py-10 text-center text-muted-foreground">{t('st.empty')}</div>
+          )}
+        </div>
+      ) : (
       <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
@@ -135,41 +223,7 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
                   </TableCell>
                   <TableCell className="max-w-56 whitespace-normal break-words text-muted-foreground">{i.remarks ?? ''}</TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <UseDialog
-                        item={i}
-                        disabled={!editable || actual <= 0}
-                        onUse={async (qty, note) => {
-                          try {
-                            await send('recordUsage', { kind, itemId: i.id, qty, note, by: currentUser?.name })
-                            toast.success(t('st.usedOk'))
-                          } catch {
-                            /* رسالة الخطأ تظهر تلقائياً */
-                          }
-                        }}
-                      />
-                      {editable && (
-                        <>
-                          <ItemDialog kind={kind} send={send} initial={i} />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title={t('common.delete')}
-                            onClick={async () => {
-                              if (!window.confirm(`${t('common.confirmDelete')}\n${i.description}`)) return
-                              try {
-                                await send('deleteStockItem', { kind, id: i.id })
-                                toast.success(t('common.deleted'))
-                              } catch {
-                                /* رسالة الخطأ تظهر تلقائياً */
-                              }
-                            }}
-                          >
-                            <Trash2 className="size-4 text-destructive" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
+                    <div className="flex items-center">{renderActions(i)}</div>
                   </TableCell>
                 </TableRow>
               )
@@ -180,6 +234,7 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
           </TableBody>
         </Table>
       </div>
+      )}
     </div>
   )
 }

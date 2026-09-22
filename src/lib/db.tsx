@@ -9,6 +9,9 @@ import {
   type ReactNode,
 } from 'react'
 import { toast } from 'sonner'
+import { Capacitor } from '@capacitor/core'
+import { Directory, Filesystem } from '@capacitor/filesystem'
+import { Share } from '@capacitor/share'
 import type {
   Approval,
   Item,
@@ -226,9 +229,24 @@ export async function exportFile(kind: 'petty-cash' | 'janitorial' | 'consumable
   const r = await fetch(`/api/export/${kind}`, { headers: { Authorization: `Bearer ${token}` } })
   if (!r.ok) throw new Error('export failed')
   const blob = await r.blob()
+  const filename = `${kind}-report.xlsx`
+
+  /* في تطبيق الموبايل (WebView) التنزيل بـ blob لا يعمل — نحفظ الملف ونشاركه عبر تطبيقات الجهاز */
+  if (Capacitor.isNativePlatform()) {
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const fr = new FileReader()
+      fr.onload = () => resolve(String(fr.result).split(',')[1])
+      fr.onerror = () => reject(new Error('read failed'))
+      fr.readAsDataURL(blob)
+    })
+    const written = await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache })
+    await Share.share({ title: filename, url: written.uri })
+    return
+  }
+
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `${kind}-report.xlsx`
+  a.download = filename
   a.click()
   URL.revokeObjectURL(a.href)
 }
