@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
+import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { fetchUsers, roleLabel, useStore, type User } from '@/lib/db'
 import { SearchableSelect } from '@/components/SearchableSelect'
 import { useLang } from '@/lib/i18n'
+import { installApp, isInstalled } from '@/lib/install'
 
 export default function LoginPage() {
   const { t, lang } = useLang()
@@ -88,6 +90,18 @@ export default function LoginPage() {
           </div>
           <Button className="w-full" size="lg" onClick={submit} disabled={busy || !userId || !pin}>
             {busy ? t('auth.connecting') : t('auth.login')}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              if (isInstalled()) return toast.success(t('app.installed'))
+              const ok = await installApp()
+              if (!ok) toast.info(t('app.installHint'))
+            }}
+          >
+            <Download className="me-2 size-4" />
+            {t('app.install')}
           </Button>
         </div>
       </div>

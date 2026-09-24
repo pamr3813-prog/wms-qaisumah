@@ -20,11 +20,14 @@ import {
   ArrowRight,
   PanelLeftClose,
   PanelLeft,
+  Download,
 } from 'lucide-react'
 import { useState } from 'react'
 import { roleLabel, useStore } from '@/lib/db'
 import { useLang } from '@/lib/i18n'
 import { fmtDateTime } from '@/lib/format'
+import { installApp, isInstalled } from '@/lib/install'
+import { toast } from 'sonner'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -148,7 +151,20 @@ export default function Layout() {
           )}
         </nav>
 
-        <div className={`border-t p-3 text-xs text-muted-foreground ${collapsed ? 'hidden md:hidden' : ''}`}>{t('app.footer')}</div>
+        <div className={`border-t p-3 text-xs text-muted-foreground ${collapsed ? 'hidden md:hidden' : ''}`}>
+          <button
+            onClick={async () => {
+              if (isInstalled()) return toast.success(t('app.installed'))
+              const ok = await installApp()
+              if (!ok) toast.info(t('app.installHint'))
+            }}
+            className="mb-2 flex w-full items-center justify-center gap-2 rounded-md border px-2 py-1.5 font-medium hover:bg-muted"
+          >
+            <Download className="size-3.5" />
+            {t('app.install')}
+          </button>
+          {t('app.footer')}
+        </div>
       </aside>
 
       {/* خلفية معتمة تغلق الدرج عند اللمس على الجوال */}

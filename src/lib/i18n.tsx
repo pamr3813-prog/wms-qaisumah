@@ -45,6 +45,9 @@ const dict = {
   'nav.consumables': { ar: 'المستهلكات', en: 'Consumables' },
   'nav.collapse': { ar: 'طي القائمة الجانبية', en: 'Collapse sidebar' },
   'nav.expand': { ar: 'فتح القائمة الجانبية', en: 'Expand sidebar' },
+  'app.install': { ar: 'تثبيت التطبيق كأيقونة', en: 'Install as app' },
+  'app.installHint': { ar: 'من قائمة المتصفح ⋮ (أو زر المشاركة في Safari على iPhone) اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»', en: 'From the browser menu ⋮ (or Share in Safari on iPhone) choose «Install app» or «Add to Home Screen»' },
+  'app.installed': { ar: 'التطبيق مثبت بالفعل على جهازك', en: 'The app is already installed on this device' },
 
   // لوحة التحكم
   'dash.title': { ar: 'لوحة التحكم', en: 'Dashboard' },
