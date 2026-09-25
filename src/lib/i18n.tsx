@@ -258,6 +258,7 @@ const dict = {
   'st.empty': { ar: 'لا توجد بنود', en: 'No line items' },
   'st.imported': { ar: 'البيانات مستوردة من ملف Excel الأصلي', en: 'Data imported from the original Excel file' },
   'st.filterSection': { ar: 'تصفية حسب القسم', en: 'Filter by section' },
+  'st.totalActual': { ar: 'إجمالي المتاح الفعلي', en: 'Total actual on hand' },
 
   // الدخول والمستخدمون
   'auth.title': { ar: 'تسجيل الدخول', en: 'Sign in' },

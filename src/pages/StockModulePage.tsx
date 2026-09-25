@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { actualOf, exportFile, useStore } from '@/lib/db'
@@ -101,20 +102,9 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">{title}</h1>
-          <p className="text-xs text-muted-foreground">{t('st.imported')} — {filtered.length} / {list.length}</p>
+          <p className="text-xs text-muted-foreground">{t('st.imported')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-44 md:w-56" />
-          <SearchableSelect
-            className="w-56"
-            options={[
-              { value: '', label: `${t('st.filterSection')}: ${t('common.all')}` },
-              ...sections.map((s) => ({ value: s, label: sectionLabel(s, lang) })),
-            ]}
-            value={section}
-            onChange={setSection}
-            clearable={false}
-          />
           <Button
             variant="outline"
             disabled={exporting}
@@ -132,15 +122,41 @@ export default function StockModulePage({ kind }: { kind: StockKind }) {
             <FileSpreadsheet className="me-2 size-4 text-green-600" />
             {exporting ? t('ex.exporting') : t('ex.export')}
           </Button>
-          {editable && <ItemDialog kind={kind} send={send} />}
+          {editable ? <ItemDialog kind={kind} send={send} /> : <ReadOnlyBanner />}
         </div>
       </div>
 
-      <div className="flex gap-3 text-sm">
-        <Badge variant="secondary" className="px-3 py-1.5">{t('st.receivedQty')}: {totals.qty}</Badge>
-        <Badge className="bg-orange-500 px-3 py-1.5">{t('st.usedQty')}: {totals.used}</Badge>
-        <Badge className="bg-green-600 px-3 py-1.5">{t('st.actualQty')}: {totals.actual}</Badge>
-      </div>
+      {/* الفلاتر والملخص — بنفس تخطيط صفحة البيتي كاش */}
+      <Card>
+        <CardContent className="flex flex-wrap items-end gap-4 pt-6">
+          <div className="space-y-1.5">
+            <Label>{t('st.section')}</Label>
+            <SearchableSelect
+              className="w-56"
+              options={[
+                { value: '', label: `${t('st.filterSection')}: ${t('common.all')}` },
+                ...sections.map((s) => ({ value: s, label: sectionLabel(s, lang) })),
+              ]}
+              value={section}
+              onChange={setSection}
+              clearable={false}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('common.search')}</Label>
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-52" />
+          </div>
+          <div className="ms-auto text-end">
+            <div className="text-xs text-muted-foreground">
+              {t('st.totalActual')} — {filtered.length} / {list.length} {t('pc.entries')}
+            </div>
+            <div className="text-xl font-bold text-primary">{totals.actual}</div>
+            <div className="text-xs text-muted-foreground">
+              {t('st.receivedQty')}: {totals.qty} — {t('st.usedQty')}: {totals.used}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {isMobile ? (
         <div className="space-y-2">
