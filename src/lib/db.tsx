@@ -154,6 +154,8 @@ export interface Notification {
   text: string
   at: string
   readBy: string[]
+  /* رابط المصدر داخل التطبيق — الضغط على الإشعار ينقل إليه */
+  link?: string | null
   /* دور مستهدف بالإشعار — غائب أو null يعني للجميع */
   role?: string | null
 }
@@ -286,6 +288,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const reconnectRef = useRef<number | null>(null)
   const ackRef = useRef<Map<string, { resolve: (v: unknown) => void; reject: (e: Error) => void }>>(new Map())
   const pendingRef = useRef<{ type: string; payload: unknown; resolve: (v: unknown) => void; reject: (e: Error) => void }[]>([])
+  /* تتبّع الإشعارات المُنبَّه عنها — تنبيه منبثق لكل إشعار جديد يصل لحظياً */
+  const seenNotifsRef = useRef<Set<string>>(new Set())
+  const notifInitRef = useRef(false)
 
   const flushPending = useCallback(() => {
     const ws = wsRef.current
@@ -329,6 +334,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (msg.type === 'state') {
         setDb(msg.db)
         setReady(true)
+        /* تنبيه منبثق لكل إشعار جديد — الضغط عليه ينقلك إلى مصدره (مثل نموذج طلب المواد المعلق) */
+        const list = (msg.db?.notifications ?? []) as { id: string; text: string; link?: string | null; role?: string | null }[]
+        if (!notifInitRef.current) {
+          list.forEach((n) => seenNotifsRef.current.add(n.id))
+          notifInitRef.current = true
+        } else {
+          const me = JSON.parse(sessionStorage.getItem('wms-user') || 'null') as { role?: string } | null
+          const fresh = list.filter((n) => !seenNotifsRef.current.has(n.id)).slice(0, 3)
+          for (const n of fresh) {
+            seenNotifsRef.current.add(n.id)
+            if (n.role && me?.role && n.role !== me.role) continue
+            const go = n.link ? () => window.location.assign(n.link as string) : undefined
+            toast.info(n.text, go ? { action: { label: 'فتح ↗', onClick: go } } : undefined)
+          }
+        }
       } else if (msg.type === 'ack') {
         const p = msg.actionId && ackRef.current.get(msg.actionId)
         if (p) {

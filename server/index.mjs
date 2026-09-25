@@ -239,8 +239,8 @@ if (normalizedCount) console.log(`Normalized ${normalizedCount} petty cash dates
 const sessions = new Map() // token -> userId
 
 // ===== إشعارات =====
-function notify(text, role = null) {
-  db.notifications.unshift({ id: uid(), text, at: new Date().toISOString(), readBy: [], role })
+function notify(text, role = null, link = null) {
+  db.notifications.unshift({ id: uid(), text, link, at: new Date().toISOString(), readBy: [], role })
   if (db.notifications.length > 200) db.notifications.length = 200
 }
 
@@ -321,7 +321,7 @@ function applyAction(action, user) {
       db.mrfs.unshift(mrf)
       db.counters.mrf++
       result = mrf
-      notify(`طلب شراء جديد ${mrf.mrfNo} من ${user.name} — بانتظار اعتماد مشرف الموقع`)
+      notify(`طلب شراء جديد ${mrf.mrfNo} من ${user.name} — بانتظار اعتماد مشرف الموقع`, null, `/purchases/${mrf.id}`)
       break
     }
 
@@ -346,12 +346,12 @@ function applyAction(action, user) {
       if (approve && !next && mrf.status === 'approved') {
         /* اكتملت كل التوقيعات — إرسال آلي إلى مسؤول المشتريات لتنفيذ الشراء */
         mrf.sentToPurchasingAt = now
-        notify(`اكتملت التوقيعات على الطلب ${mrf.mrfNo} — أُرسل إليك آلياً لبدء التنفيذ والشراء`, 'purchasing')
-        notify(`اعتمد ${user.name} الطلب ${mrf.mrfNo} — اكتملت التوقيعات وأُرسل آلياً إلى مسؤول المشتريات`)
+        notify(`اكتملت التوقيعات على الطلب ${mrf.mrfNo} — أُرسل إليك آلياً لبدء التنفيذ والشراء`, 'purchasing', `/purchases/${mrf.id}`)
+        notify(`اعتمد ${user.name} الطلب ${mrf.mrfNo} — اكتملت التوقيعات وأُرسل آلياً إلى مسؤول المشتريات`, null, `/purchases/${mrf.id}`)
       } else {
         notify(approve
           ? `اعتمد ${user.name} الطلب ${mrf.mrfNo}${next ? ` — بانتظار ${next.role}` : ' — اكتملت الاعتمادات'}`
-          : `رفض ${user.name} الطلب ${mrf.mrfNo}: ${note}`)
+          : `رفض ${user.name} الطلب ${mrf.mrfNo}: ${note}`, null, `/purchases/${mrf.id}`)
       }
       break
     }
@@ -360,7 +360,7 @@ function applyAction(action, user) {
       const mrf = db.mrfs.find((m) => m.id === payload.mrfId)
       if (!mrf) throw new Error('الطلب غير موجود')
       db.comments.push({ id: uid(), mrfId: payload.mrfId, author: user.name, role: user.role, text: payload.text, at: now })
-      notify(`علق ${user.name} على الطلب ${mrf.mrfNo}: ${payload.text.slice(0, 80)}`)
+      notify(`علق ${user.name} على الطلب ${mrf.mrfNo}: ${payload.text.slice(0, 80)}`, null, `/purchases/${mrf.id}`)
       break
     }
 

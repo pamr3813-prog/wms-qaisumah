@@ -230,10 +230,22 @@ export default function Layout() {
                     .filter((n) => !n.role || n.role === currentUser?.role)
                     .slice(0, 30)
                     .map((n) => (
-                    <div key={n.id} className="border-b px-4 py-2 text-sm last:border-0">
-                      <p>{n.text}</p>
+                    <button
+                      key={n.id}
+                      type="button"
+                      onClick={() => {
+                        if (!n.link) return
+                        setNotifOpen(false)
+                        navigate(n.link)
+                      }}
+                      className={`block w-full border-b px-4 py-2 text-start text-sm last:border-0 ${n.link ? 'cursor-pointer transition-colors hover:bg-accent' : 'cursor-default'}`}
+                    >
+                      <p className="flex items-start justify-between gap-2">
+                        <span className="min-w-0 break-words">{n.text}</span>
+                        {n.link && <span className="shrink-0 text-primary">↗</span>}
+                      </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{fmtDateTime(n.at)}</p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </PopoverContent>
