@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, FileSpreadsheet, Pencil, Trash2 } from 'lucide-react'
+import { Plus, FileSpreadsheet, Pencil, Trash2, Lock, LockOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,6 +56,25 @@ export default function PettyCashPage() {
 
   const monthTotal = filtered.reduce((s, p) => s + (p.total ?? 0), 0)
   const monthVat = filtered.reduce((s, p) => s + (p.vat ?? 0), 0)
+  const closedInfo = db.pettyClosed?.[month] ?? null
+  const isClosed = !!closedInfo
+
+  async function toggleMonthLock() {
+    if (!editable) return
+    try {
+      if (isClosed) {
+        if (!window.confirm(`${t('pc.reopenConfirm')}\n${month}`)) return
+        await send('reopenPettyMonth', { month })
+        toast.success(t('pc.reopened'))
+      } else {
+        if (!window.confirm(`${t('pc.closeConfirm')}\n${month}\n${filtered.length} ${t('pc.entries')} — ${fmtMoney(monthTotal)}`)) return
+        await send('closePettyMonth', { month })
+        toast.success(t('pc.closedToast'))
+      }
+    } catch {
+      /* رسالة الخطأ تظهر تلقائياً */
+    }
+  }
 
   async function doExport() {
     setExporting(true)
@@ -80,8 +99,8 @@ export default function PettyCashPage() {
             <FileSpreadsheet className="me-2 size-4 text-green-700" />
             {exporting ? t('ex.exporting') : t('ex.export')}
           </Button>
-          {editable ? (
-            <EntryDialog months={months} departments={departments} defaultMonth={month} onSave={send} />
+          {editable && !isClosed ? (
+            <EntryDialog months={months.filter((m) => !db.pettyClosed?.[m])} departments={departments} defaultMonth={month} onSave={send} />
           ) : (
             <ReadOnlyBanner />
           )}
@@ -97,6 +116,15 @@ export default function PettyCashPage() {
               {months.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
+          {editable && months.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>{t('pc.monthLock')}</Label>
+              <Button variant={isClosed ? 'outline' : 'default'} size="sm" className="h-9" onClick={() => void toggleMonthLock()}>
+                {isClosed ? <LockOpen className="me-1.5 size-4" /> : <Lock className="me-1.5 size-4" />}
+                {isClosed ? t('pc.reopen') : t('pc.closeMonth')}
+              </Button>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>{t('pc.department')}</Label>
             <select className="h-9 rounded-md border bg-background px-3 text-sm" value={dept} onChange={(e) => setDept(e.target.value)}>
@@ -109,6 +137,12 @@ export default function PettyCashPage() {
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.search')} className="w-52" />
           </div>
           <div className="ms-auto text-end">
+            {isClosed && (
+              <Badge className="mb-1 bg-slate-600">
+                <Lock className="me-1 size-3" />
+                {t('pc.closedBadge')} — {closedInfo.by} — {fmtDate(closedInfo.at)}
+              </Badge>
+            )}
             <div className="text-xs text-muted-foreground">
               {t('pc.grandTotal')} — {filtered.length} {t('pc.entries')}
             </div>
@@ -151,7 +185,7 @@ export default function PettyCashPage() {
                 <TableCell className="text-center font-semibold">{fmtMoney(p.total)}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{p.by ?? (p.imported ? 'استيراد' : '')}</TableCell>
                 <TableCell>
-                  {editable && (
+                  {editable && !isClosed && (
                     <div className="flex items-center">
                       <EntryDialog months={months} departments={departments} defaultMonth={month} onSave={send} initial={p} />
                       <Button

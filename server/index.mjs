@@ -115,6 +115,7 @@ function buildSeed() {
     ],
     comments: [],
     notifications: [],
+    pettyClosed: {},
   }
 }
 
@@ -210,6 +211,7 @@ async function initData() {
 
 let db = await initData()
 if (!db.issuances) db.issuances = []
+db.pettyClosed ??= {}
 
 // ===== تطبيع تواريخ البيتي كاش =====
 // صيغ قديمة موجودة في البيانات: ISO بترتيب yyyy-dd-mm (اليوم في الوسط) و dd/m/yyyy المختصرة
@@ -366,6 +368,7 @@ function applyAction(action, user) {
 
     case 'addPettyEntry':
       if (!has(user, 'canEditPetty')) throw new Error('غير مصرح — البيتي كاش للمشرف اللوجستي فقط')
+      if (db.pettyClosed?.[payload.month]) throw new Error(`شهر ${payload.month} محفوظ (مغلق) — لا يمكن الإضافة إليه`)
       result = { ...payload, id: uid(), imported: false, by: user.name }
       db.pettyCash.unshift(result)
       notify(`سجّل ${user.name} مصروف بيتي كاش: ${payload.description}`)
@@ -421,7 +424,9 @@ function applyAction(action, user) {
       if (!has(user, 'canEditPetty')) throw new Error('غير مصرح — البيتي كاش للمشرف اللوجستي فقط')
       const entry = db.pettyCash.find((p) => p.id === payload.id)
       if (!entry) throw new Error('البند غير موجود')
+      if (db.pettyClosed?.[entry.month]) throw new Error(`شهر ${entry.month} محفوظ (مغلق) — لا يمكن التعديل عليه`)
       const f = payload.fields || {}
+      if (f.month && db.pettyClosed?.[f.month]) throw new Error(`شهر ${f.month} محفوظ (مغلق) — لا يمكن النقل إليه`)
       for (const k of ['month', 'date', 'department', 'description', 'invoiceNo', 'remarks']) {
         if (f[k] !== undefined) entry[k] = f[k]
       }
@@ -438,8 +443,37 @@ function applyAction(action, user) {
       if (!has(user, 'canEditPetty')) throw new Error('غير مصرح — البيتي كاش للمشرف اللوجستي فقط')
       const entry = db.pettyCash.find((p) => p.id === payload.id)
       if (!entry) break
+      if (db.pettyClosed?.[entry.month]) throw new Error(`شهر ${entry.month} محفوظ (مغلق) — لا يمكن الحذف منه`)
       db.pettyCash = db.pettyCash.filter((p) => p.id !== payload.id)
       notify(`حذف ${user.name} بنداً من البيتي كاش: ${entry.description}`)
+      break
+    }
+
+    case 'closePettyMonth': {
+      if (!has(user, 'canEditPetty')) throw new Error('غير مصرح — البيتي كاش للمشرف اللوجستي فقط')
+      const month = payload.month
+      if (!month) throw new Error('حدد الشهر')
+      const rows = db.pettyCash.filter((p) => p.month === month)
+      db.pettyClosed ??= {}
+      db.pettyClosed[month] = {
+        at: now,
+        by: user.name,
+        count: rows.length,
+        total: Math.round(rows.reduce((s, p) => s + (p.total || 0), 0) * 100) / 100,
+        vat: Math.round(rows.reduce((s, p) => s + (p.vat || 0), 0) * 100) / 100,
+      }
+      notify(`حفظ وإغلاق ${user.name} شهر البيتي كاش ${month} — ${rows.length} قيد بإجمالي ${db.pettyClosed[month].total} ر.س`)
+      result = db.pettyClosed[month]
+      break
+    }
+
+    case 'reopenPettyMonth': {
+      if (!has(user, 'canEditPetty')) throw new Error('غير مصرح — البيتي كاش للمشرف اللوجستي فقط')
+      const month = payload.month
+      if (db.pettyClosed?.[month]) {
+        delete db.pettyClosed[month]
+        notify(`أعاد ${user.name} فتح شهر البيتي كاش ${month} للتعديل`)
+      }
       break
     }
 

@@ -236,6 +236,14 @@ const dict = {
   'pc.errFields': { ar: 'أكمل: القسم، الوصف، رقم الفاتورة، والكمية', en: 'Complete: department, description, invoice no and qty' },
   'pc.saved': { ar: 'تم تسجيل المصروف', en: 'Expense recorded' },
   'pc.summary': { ar: 'ملخص', en: 'Summary' },
+  'pc.monthLock': { ar: 'حفظ الشهر', en: 'Month archive' },
+  'pc.closeMonth': { ar: 'حفظ وإغلاق الشهر', en: 'Save & close month' },
+  'pc.closeConfirm': { ar: 'سيتم حفظ شهر البيتي كاش وقفل قيده — لن يمكن الإضافة أو التعديل أو الحذف فيه بعد الآن (يمكن إعادة فتحه لاحقاً).\n\nالشهر:', en: 'This will archive the petty cash month and lock it — no add/edit/delete afterwards (you can reopen it later).\n\nMonth:' },
+  'pc.closedToast': { ar: 'تم حفظ وإغلاق الشهر بنجاح', en: 'Month saved & closed successfully' },
+  'pc.closedBadge': { ar: 'شهر محفوظ ومقفل', en: 'Archived & locked month' },
+  'pc.reopen': { ar: 'إعادة فتح الشهر', en: 'Reopen month' },
+  'pc.reopenConfirm': { ar: 'سيتم إعادة فتح الشهر للإضافة والتعديل — هل أنت متأكد؟\n\nالشهر:', en: 'The month will be reopened for editing — are you sure?\n\nMonth:' },
+  'pc.reopened': { ar: 'تمت إعادة فتح الشهر', en: 'Month reopened' },
 
   // النظافة والمستهلكات
   'st.title.janitorial': { ar: 'مواد النظافة — الخدمات اللينة (Soft Services)', en: 'Janitorial Supplies — Soft Services' },

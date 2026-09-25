@@ -193,6 +193,8 @@ export interface Db {
   comments: Comment[]
   notifications: Notification[]
   issuances: Issuance[]
+  /* شهور البيتي كاش المحفوظة (مغلقة) — مفتاحها اسم الشهر */
+  pettyClosed: Record<string, { at: string; by: string; count: number; total: number; vat: number }>
 }
 
 const EMPTY_DB: Db = {
@@ -208,6 +210,7 @@ const EMPTY_DB: Db = {
   comments: [],
   notifications: [],
   issuances: [],
+  pettyClosed: {},
 }
 
 // ===== جلسة HTTP =====
