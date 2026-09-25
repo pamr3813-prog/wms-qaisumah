@@ -1,7 +1,7 @@
 /* عامل خدمة تطبيق مستودع القيصومة — PWA
-   الصفحة والأصول: كاش أولاً (يعمل دون اتصال بعد أول زيارة)
+   HTML والأصول المُجزّأة (JS/CSS): الشبكة أولاً مع كاش احتياطي — لا شاشات بيضاء بعد النشر
    البيانات الحية (/api, /ws): تُتجاوز دائماً حتى لا تُحفظ بيانات قديمة */
-const CACHE = 'wms-qaisumah-v1'
+const CACHE = 'wms-qaisumah-v2'
 const PRECACHE = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png']
 
 self.addEventListener('install', (e) => {
@@ -9,6 +9,7 @@ self.addEventListener('install', (e) => {
 })
 
 self.addEventListener('activate', (e) => {
+  /* حذف كل الكاشات القديمة من الإصدارات السابقة */
   e.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
@@ -24,7 +25,7 @@ self.addEventListener('fetch', (e) => {
   /* البيانات الحية والتصدير و WebSocket: الشبكة مباشرة */
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/ws')) return
 
-  /* طلبات التنقل: الشبكة أولاً، وعند انقطاع الاتصال نعرض نسخة الكاش */
+  /* طلبات التنقل (HTML): الشبكة أولاً، وعند انقطاع الاتصال نعرض نسخة الكاش */
   if (request.mode === 'navigate') {
     e.respondWith(
       fetch(request)
@@ -38,7 +39,24 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
-  /* الأصول الثابتة (JS/CSS/الأيقونات): كاش أولاً ثم الشبكة */
+  /* أصول البناء المُجزّأة (JS/CSS): الشبكة أولاً — تُحدَّث تلقائياً مع كل نشر
+     والكاش احتياطي فقط عند انقطاع الاتصال (يمنع الشاشة البيضاء) */
+  if (url.pathname.startsWith('/assets/')) {
+    e.respondWith(
+      fetch(request)
+        .then((res) => {
+          if (res.ok) {
+            const copy = res.clone()
+            caches.open(CACHE).then((c) => c.put(request, copy))
+          }
+          return res
+        })
+        .catch(() => caches.match(request)),
+    )
+    return
+  }
+
+  /* باقي الأصول الثابتة (الأيقونات): كاش أولاً ثم الشبكة */
   e.respondWith(
     caches.match(request).then(
       (hit) =>
