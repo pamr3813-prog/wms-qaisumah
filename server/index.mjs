@@ -138,6 +138,12 @@ async function cloudDownload() {
     headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
   })
   if (r.status === 404) return null
+  if (r.status === 400) {
+    /* Supabase يرجع 400 NoSuchKey عند غياب الملف بدلاً من 404 */
+    const body = await r.text().catch(() => '')
+    if (body.includes('NoSuchKey') || body.includes('not_found')) return null
+    throw new Error(`Supabase download failed: ${r.status} ${body.slice(0, 200)}`)
+  }
   if (!r.ok) throw new Error(`Supabase download failed: ${r.status}`)
   return JSON.parse(await r.text())
 }
@@ -177,6 +183,13 @@ function saveData(db) {
 
 async function initData() {
   if (CLOUD_MODE) {
+    /* بذر إجباري مرة واحدة: القرص المحلي هو المرجع ويُرفق للسحابة فوق ما فيها */
+    if (process.env.WMS_SEED_CLOUD === '1') {
+      const local = loadData()
+      await cloudUpload(JSON.stringify(local))
+      console.log('WMS_SEED_CLOUD: uploaded local disk data to Supabase (local wins)')
+      return local
+    }
     try {
       const remote = await cloudDownload()
       if (remote) {
