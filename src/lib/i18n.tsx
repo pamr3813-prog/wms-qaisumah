@@ -5,7 +5,7 @@ export type Lang = 'ar' | 'en'
 
 const dict = {
   // عام
-  'app.title': { ar: 'مستودع ومشتريات مطار القيصومة', en: 'Qaisumah Airport Warehouse & Procurement' },
+  'app.title': { ar: 'الأصيل الدائم', en: 'Al-Aseel Al-Daem' },
   'app.subtitle': { ar: 'والمشتريات — MRF', en: '& Purchases — MRF' },
   'app.footer': { ar: 'مطار القيصومة — المجال العربي', en: 'Qaisumah Airport — Al Majal Al Arabi' },
   'lang.switch': { ar: 'English', en: 'العربية' },

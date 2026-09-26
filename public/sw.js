@@ -1,7 +1,7 @@
 /* عامل خدمة تطبيق مستودع القيصومة — PWA
    HTML والأصول المُجزّأة (JS/CSS): الشبكة أولاً مع كاش احتياطي — لا شاشات بيضاء بعد النشر
    البيانات الحية (/api, /ws): تُتجاوز دائماً حتى لا تُحفظ بيانات قديمة */
-const CACHE = 'wms-qaisumah-v2'
+const CACHE = 'wms-qaisumah-v3'
 const PRECACHE = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png']
 
 self.addEventListener('install', (e) => {
